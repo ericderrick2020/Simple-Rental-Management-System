@@ -1,0 +1,5 @@
+[console_scripts]
+check-lucide-version = lucide.dev_utils:print_version_status
+lucide = lucide.cli:main
+lucide-db = lucide.cli:main_legacy_db
+
