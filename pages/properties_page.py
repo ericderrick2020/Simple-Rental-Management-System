@@ -6,6 +6,7 @@ from config.settings import COLORS, FONTS
 from data.database import (
     DatabaseUnavailable,
     add_property as save_property_to_database,
+    delete_property as delete_property_from_database,
     get_properties,
 )
 from pages.base_page import BasePage
@@ -29,6 +30,13 @@ class PropertiesPage(BasePage):
         )
         refresh_button.pack(side="right", padx=(0, 20))
 
+        delete_property_button = self.create_secondary_button(
+            self.header_actions,
+            text="Delete Selected",
+            command=self.delete_selected_property,
+        )
+        delete_property_button.pack(side="right", padx=(0, 8))
+
         # This button opens the modal form used to register a new property.
         add_property_button = self.create_primary_button(
             self.header_actions,
@@ -38,8 +46,9 @@ class PropertiesPage(BasePage):
         add_property_button.pack(side="right", padx=(0, 8))
 
         # These columns control the headings shown in the properties table.
-        self.property_columns = ("Property Name", "Location", "Units", "Monthly Rent")
+        self.property_columns = ("Property Name", "Location", "Units", "Monthly Rent", "Details")
         self.property_rows = []
+        self.property_records = []
 
         # Create the table once when the page loads, then update its rows when data changes.
         self.property_table = SimpleTable(self.content_frame, columns=self.property_columns)
@@ -114,9 +123,31 @@ class PropertiesPage(BasePage):
             entry.grid(row=row, column=1, sticky="ew", padx=(16, 0), pady=(0, 12), ipady=6)
             entries[field_name] = entry
 
+        tk.Label(
+            form_frame,
+            text="Extra Details",
+            font=FONTS["button"],
+            bg=COLORS["surface"],
+            fg=COLORS["text"],
+        ).grid(row=6, column=0, sticky="nw", pady=(0, 12))
+
+        details_field = tk.Text(
+            form_frame,
+            font=FONTS["normal"],
+            bg=COLORS["white"],
+            fg=COLORS["text"],
+            relief="solid",
+            borderwidth=1,
+            width=34,
+            height=4,
+            wrap="word",
+        )
+        details_field.grid(row=6, column=1, sticky="ew", padx=(16, 0), pady=(0, 12))
+        entries["extra_details"] = details_field
+
         # Action buttons are grouped in their own frame at the bottom right.
         button_frame = tk.Frame(form_frame, bg=COLORS["surface"])
-        button_frame.grid(row=6, column=0, columnspan=2, sticky="e", pady=(8, 0))
+        button_frame.grid(row=7, column=0, columnspan=2, sticky="e", pady=(8, 0))
 
         tk.Button(
             button_frame,
@@ -185,6 +216,7 @@ class PropertiesPage(BasePage):
         location = entries["location"].get().strip()
         units = entries["units"].get().strip()
         revenue = entries["revenue"].get().strip()
+        extra_details = entries["extra_details"].get("1.0", tk.END).strip()
 
         # Stop saving if any required field is empty.
         if not property_name or not location or not units or not revenue:
@@ -222,6 +254,7 @@ class PropertiesPage(BasePage):
             "total_units": int(units),
             "monthly_rent": monthly_rent,
             "status": "Active",
+            "extra_details": extra_details,
         }
 
         try:
@@ -248,7 +281,7 @@ class PropertiesPage(BasePage):
     def load_property_data(self):
         """Load property rows from the database."""
 
-        database_rows = get_properties()
+        self.property_records = get_properties()
 
         self.property_rows = [
             (
@@ -256,11 +289,55 @@ class PropertiesPage(BasePage):
                 row["location"],
                 str(row["total_units"]),
                 f"UGX {float(row['monthly_rent']):,.2f}",
+                row["extra_details"] or "",
             )
-            for row in database_rows
+            for row in self.property_records
         ]
 
         self.property_table.set_rows(self.property_rows)
+
+    def delete_selected_property(self):
+        """Delete the selected property after confirmation."""
+
+        selected_index = self.property_table.get_selected_index()
+        if selected_index is None:
+            messagebox.showwarning(
+                "No Property Selected",
+                "Please select a property in the table before deleting.",
+                parent=self,
+            )
+            return
+
+        property_record = self.property_records[selected_index]
+        confirmed = messagebox.askyesno(
+            "Delete Property",
+            (
+                f"Delete {property_record['property_name']}?\n\n"
+                "This will also delete tenants and payment records linked to this property."
+            ),
+            parent=self,
+        )
+        if not confirmed:
+            return
+
+        try:
+            delete_property_from_database(property_record["property_id"])
+        except DatabaseUnavailable as exc:
+            messagebox.showerror(
+                "Database Unavailable",
+                f"Property could not be deleted because MySQL is unavailable.\n\n{exc}",
+                parent=self,
+            )
+            return
+        except Exception as exc:
+            messagebox.showerror(
+                "Database Error",
+                f"Property could not be deleted from MySQL.\n\n{exc}",
+                parent=self,
+            )
+            return
+
+        self.load_property_data()
 
     def refresh_page(self):
         """Refresh the property list when the page is opened or refreshed."""

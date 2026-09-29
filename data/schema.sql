@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS properties (
     total_units INT NOT NULL DEFAULT 0,
     monthly_rent DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     status VARCHAR(30) NOT NULL DEFAULT 'Active',
+    extra_details TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -31,6 +32,9 @@ CREATE TABLE IF NOT EXISTS tenants (
     monthly_rent DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     emergency_contact VARCHAR(120),
     status VARCHAR(30) NOT NULL DEFAULT 'Active',
+    kyc_image_path VARCHAR(500),
+    lc1_letter_path VARCHAR(500),
+    extra_details TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_tenants_property
         FOREIGN KEY (property_id)
@@ -47,6 +51,7 @@ CREATE TABLE IF NOT EXISTS payments (
     payment_method VARCHAR(40) NOT NULL,
     reference_no VARCHAR(80) UNIQUE,
     notes TEXT,
+    balance DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
     status VARCHAR(30) NOT NULL DEFAULT 'Paid',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_payments_tenant

@@ -65,6 +65,8 @@ def initialize_database():
         cursor = connection.cursor()
         for statement in statements:
             cursor.execute(statement)
+        cursor.execute(f"USE {DATABASE_CONFIG['database']}")
+        _ensure_optional_columns(cursor)
         connection.commit()
         return True
     finally:
@@ -108,7 +110,13 @@ def get_properties():
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
             """
-            SELECT property_name, location, total_units, monthly_rent
+            SELECT
+                property_id,
+                property_name,
+                location,
+                total_units,
+                monthly_rent,
+                extra_details
             FROM properties
             ORDER BY property_name
             """
@@ -133,9 +141,10 @@ def add_property(property_data):
                 location,
                 total_units,
                 monthly_rent,
-                status
+                status,
+                extra_details
             )
-            VALUES (%s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """,
             (
                 property_data["property_name"],
@@ -143,10 +152,52 @@ def add_property(property_data):
                 property_data["total_units"],
                 property_data["monthly_rent"],
                 property_data["status"],
+                property_data["extra_details"] or None,
             ),
         )
         connection.commit()
         return cursor.lastrowid
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def delete_property(property_id):
+    """Delete a property and records that depend on it."""
+
+    connection = get_connection()
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            DELETE payments
+            FROM payments
+            INNER JOIN tenants
+                ON tenants.tenant_id = payments.tenant_id
+            WHERE tenants.property_id = %s
+            """,
+            (property_id,),
+        )
+        cursor.execute(
+            """
+            DELETE FROM tenants
+            WHERE property_id = %s
+            """,
+            (property_id,),
+        )
+        cursor.execute(
+            """
+            DELETE FROM properties
+            WHERE property_id = %s
+            """,
+            (property_id,),
+        )
+        connection.commit()
+        return cursor.rowcount
+    except Exception:
+        connection.rollback()
+        raise
     finally:
         cursor.close()
         connection.close()
@@ -170,9 +221,12 @@ def add_tenant(tenant_data):
                 lease_start,
                 monthly_rent,
                 emergency_contact,
-                status
+                status,
+                kyc_image_path,
+                lc1_letter_path,
+                extra_details
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 tenant_data["property_id"],
@@ -184,6 +238,9 @@ def add_tenant(tenant_data):
                 tenant_data["monthly_rent"],
                 tenant_data["emergency_contact"] or None,
                 tenant_data["status"],
+                tenant_data["kyc_image_path"] or None,
+                tenant_data["lc1_letter_path"] or None,
+                tenant_data["extra_details"] or None,
             ),
         )
         connection.commit()
@@ -206,13 +263,17 @@ def get_tenants():
         cursor.execute(
             """
             SELECT
+                tenants.tenant_id,
                 tenants.tenant_name,
                 tenants.phone,
                 tenants.email,
                 properties.property_name,
                 tenants.unit_number,
                 tenants.monthly_rent,
-                tenants.status
+                tenants.status,
+                tenants.kyc_image_path,
+                tenants.lc1_letter_path,
+                tenants.extra_details
             FROM tenants
             INNER JOIN properties
                 ON properties.property_id = tenants.property_id
@@ -220,6 +281,37 @@ def get_tenants():
             """
         )
         return cursor.fetchall()
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def delete_tenant(tenant_id):
+    """Delete a tenant and their payment records."""
+
+    connection = get_connection()
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            """
+            DELETE FROM payments
+            WHERE tenant_id = %s
+            """,
+            (tenant_id,),
+        )
+        cursor.execute(
+            """
+            DELETE FROM tenants
+            WHERE tenant_id = %s
+            """,
+            (tenant_id,),
+        )
+        connection.commit()
+        return cursor.rowcount
+    except Exception:
+        connection.rollback()
+        raise
     finally:
         cursor.close()
         connection.close()
@@ -272,9 +364,10 @@ def add_payment(payment_data):
                 payment_method,
                 reference_no,
                 notes,
+                balance,
                 status
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 payment_data["tenant_id"],
@@ -283,6 +376,7 @@ def add_payment(payment_data):
                 payment_data["payment_method"],
                 payment_data["reference_no"] or None,
                 payment_data["notes"] or None,
+                payment_data["balance"],
                 payment_data["status"],
             ),
         )
@@ -306,12 +400,17 @@ def get_payments():
         cursor.execute(
             """
             SELECT
+                payments.payment_id,
                 tenants.tenant_name,
+                tenants.phone,
                 properties.property_name,
                 tenants.unit_number,
                 payments.amount,
+                payments.balance,
                 payments.payment_date,
                 payments.payment_method,
+                payments.reference_no,
+                payments.notes,
                 payments.status
             FROM payments
             INNER JOIN tenants
@@ -550,3 +649,31 @@ def _read_schema_statements():
             statements.append(statement)
 
     return statements
+
+
+def _ensure_optional_columns(cursor):
+    """Add columns introduced after the original class-project schema."""
+
+    columns = {
+        "properties": {
+            "extra_details": "TEXT",
+        },
+        "tenants": {
+            "kyc_image_path": "VARCHAR(500)",
+            "lc1_letter_path": "VARCHAR(500)",
+            "extra_details": "TEXT",
+        },
+        "payments": {
+            "balance": "DECIMAL(12, 2) NOT NULL DEFAULT 0.00",
+        },
+    }
+
+    for table_name, table_columns in columns.items():
+        cursor.execute(f"SHOW COLUMNS FROM {table_name}")
+        existing_columns = {row[0] for row in cursor.fetchall()}
+
+        for column_name, column_type in table_columns.items():
+            if column_name not in existing_columns:
+                cursor.execute(
+                    f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
+                )

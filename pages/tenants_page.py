@@ -1,11 +1,14 @@
+from pathlib import Path
+
 import tkinter as tk
-from tkinter import messagebox, ttk
+from tkinter import filedialog, messagebox, ttk
 
 from components.simple_table import SimpleTable
 from config.settings import COLORS, FONTS
 from data.database import (
     DatabaseUnavailable,
     add_tenant as save_tenant_to_database,
+    delete_tenant as delete_tenant_from_database,
     get_property_options,
     get_tenants,
 )
@@ -31,6 +34,13 @@ class TenantsPage(BasePage):
         )
         self.refresh_button.pack(side="right", padx=(0, 20))
 
+        self.delete_tenant_button = self.create_secondary_button(
+            self.header_actions,
+            text="Delete Selected",
+            command=self.delete_selected_tenant,
+        )
+        self.delete_tenant_button.pack(side="right", padx=(0, 8))
+
         self.add_tenant_button = self.create_primary_button(
             self.header_actions,
             text="+ Add Tenant",
@@ -46,8 +56,12 @@ class TenantsPage(BasePage):
             "Property / Unit",
             "Monthly Rent",
             "Status",
+            "KYC Image",
+            "LC1 Letter",
+            "Extra Details",
         )
         self.tenant_rows = []
+        self.tenant_records = []
         self.property_options = []
         self.property_lookup = {}
 
@@ -118,8 +132,57 @@ class TenantsPage(BasePage):
         property_field.grid(row=3, column=3, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
         entries["property"] = property_field
 
+        self._create_form_label(form_frame, "KYC Image", 6, 0)
+        kyc_field = self._create_file_picker(
+            form_frame,
+            "Select KYC Image",
+            (
+                ("Image files", "*.png *.jpg *.jpeg *.gif *.bmp"),
+                ("All files", "*.*"),
+            ),
+            modal,
+        )
+        kyc_field["frame"].grid(row=6, column=1, sticky="ew", padx=(12, 18), pady=(0, 14))
+        entries["kyc_image_path"] = kyc_field["entry"]
+
+        self._create_form_label(form_frame, "LC1 Letter", 6, 2)
+        lc1_field = self._create_file_picker(
+            form_frame,
+            "Select LC1 Letter Image",
+            (
+                ("Image files", "*.png *.jpg *.jpeg *.gif *.bmp"),
+                ("PDF files", "*.pdf"),
+                ("All files", "*.*"),
+            ),
+            modal,
+        )
+        lc1_field["frame"].grid(row=6, column=3, sticky="ew", padx=(12, 18), pady=(0, 14))
+        entries["lc1_letter_path"] = lc1_field["entry"]
+
+        self._create_form_label(form_frame, "Extra Details", 7, 0)
+        extra_details_field = tk.Text(
+            form_frame,
+            font=FONTS["normal"],
+            bg=COLORS["white"],
+            fg=COLORS["text"],
+            relief="solid",
+            borderwidth=1,
+            width=28,
+            height=4,
+            wrap="word",
+        )
+        extra_details_field.grid(
+            row=7,
+            column=1,
+            columnspan=3,
+            sticky="ew",
+            padx=(12, 18),
+            pady=(0, 14),
+        )
+        entries["extra_details"] = extra_details_field
+
         # Combobox creates a drop-down list, which prevents random status text.
-        self._create_form_label(form_frame, "Status", 6, 0)
+        self._create_form_label(form_frame, "Status", 8, 0)
         status_field = ttk.Combobox(
             form_frame,
             values=("Active", "Pending Move-in", "Notice Given"),
@@ -128,11 +191,11 @@ class TenantsPage(BasePage):
             width=26,
         )
         status_field.current(0)
-        status_field.grid(row=6, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
+        status_field.grid(row=8, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
         entries["status"] = status_field
 
         button_frame = tk.Frame(form_frame, bg=COLORS["surface"])
-        button_frame.grid(row=7, column=0, columnspan=4, sticky="e", pady=(8, 0))
+        button_frame.grid(row=9, column=0, columnspan=4, sticky="e", pady=(8, 0))
 
         # The buttons call small functions so the form logic stays easy to read.
         self.create_secondary_button(button_frame, "Cancel", modal.destroy).pack(side="left", padx=(0, 8))
@@ -171,6 +234,38 @@ class TenantsPage(BasePage):
             borderwidth=1,
             width=28,
         )
+
+    def _create_file_picker(self, parent, title, filetypes, modal):
+        """Create a text field and Browse button for document image paths."""
+
+        file_frame = tk.Frame(parent, bg=COLORS["surface"])
+        file_frame.columnconfigure(0, weight=1)
+
+        file_entry = self._create_entry(file_frame)
+        file_entry.grid(row=0, column=0, sticky="ew", ipady=6)
+
+        browse_button = self.create_secondary_button(
+            file_frame,
+            "Browse",
+            lambda: self._browse_for_file(file_entry, title, filetypes, modal),
+        )
+        browse_button.grid(row=0, column=1, sticky="e", padx=(8, 0))
+
+        return {"frame": file_frame, "entry": file_entry}
+
+    def _browse_for_file(self, entry, title, filetypes, modal):
+        """Open the file picker and place the selected file path in the field."""
+
+        selected_path = filedialog.askopenfilename(
+            parent=modal,
+            title=title,
+            filetypes=filetypes,
+        )
+        if not selected_path:
+            return
+
+        entry.delete(0, tk.END)
+        entry.insert(0, selected_path)
 
     def _create_property_dropdown(self, parent, entries):
         """Create a property dropdown using MySQL records when available."""
@@ -241,6 +336,9 @@ class TenantsPage(BasePage):
         lease_start = entries["lease_start"].get().strip()
         monthly_rent = entries["monthly_rent"].get().strip()
         emergency_contact = entries["emergency_contact"].get().strip()
+        kyc_image_path = entries["kyc_image_path"].get().strip()
+        lc1_letter_path = entries["lc1_letter_path"].get().strip()
+        extra_details = entries["extra_details"].get("1.0", tk.END).strip()
         status = entries["status"].get().strip()
 
         # These are the most important fields, so the tenant should not be saved without them.
@@ -291,6 +389,9 @@ class TenantsPage(BasePage):
             "lease_start": lease_start,
             "monthly_rent": rent_amount,
             "emergency_contact": emergency_contact,
+            "kyc_image_path": kyc_image_path,
+            "lc1_letter_path": lc1_letter_path,
+            "extra_details": extra_details,
             "status": status,
         }
 
@@ -318,7 +419,7 @@ class TenantsPage(BasePage):
     def load_tenant_data(self):
         """Load tenant rows from the database."""
 
-        database_rows = get_tenants()
+        self.tenant_records = get_tenants()
 
         self.tenant_rows = [
             (
@@ -328,11 +429,74 @@ class TenantsPage(BasePage):
                 f"{row['property_name']} / {row['unit_number']}",
                 f"UGX {float(row['monthly_rent']):,.2f}",
                 row["status"],
+                self._display_file_name(row["kyc_image_path"]),
+                self._display_file_name(row["lc1_letter_path"]),
+                self._shorten_text(row["extra_details"] or ""),
             )
-            for row in database_rows
+            for row in self.tenant_records
         ]
 
         self.tenant_table.set_rows(self.tenant_rows)
+
+    def _display_file_name(self, file_path):
+        """Show a compact file name in the table."""
+
+        if not file_path:
+            return ""
+
+        return Path(file_path).name
+
+    def _shorten_text(self, text, limit=55):
+        """Keep long details from stretching the table too far."""
+
+        cleaned_text = " ".join(text.split())
+        if len(cleaned_text) <= limit:
+            return cleaned_text
+
+        return f"{cleaned_text[:limit - 3]}..."
+
+    def delete_selected_tenant(self):
+        """Delete the selected tenant after confirmation."""
+
+        selected_index = self.tenant_table.get_selected_index()
+        if selected_index is None:
+            messagebox.showwarning(
+                "No Tenant Selected",
+                "Please select a tenant in the table before deleting.",
+                parent=self,
+            )
+            return
+
+        tenant_record = self.tenant_records[selected_index]
+        confirmed = messagebox.askyesno(
+            "Delete Tenant",
+            (
+                f"Delete {tenant_record['tenant_name']}?\n\n"
+                "This will also delete payment records linked to this tenant."
+            ),
+            parent=self,
+        )
+        if not confirmed:
+            return
+
+        try:
+            delete_tenant_from_database(tenant_record["tenant_id"])
+        except DatabaseUnavailable as exc:
+            messagebox.showerror(
+                "Database Unavailable",
+                f"Tenant could not be deleted because MySQL is unavailable.\n\n{exc}",
+                parent=self,
+            )
+            return
+        except Exception as exc:
+            messagebox.showerror(
+                "Database Error",
+                f"Tenant could not be deleted from MySQL.\n\n{exc}",
+                parent=self,
+            )
+            return
+
+        self.load_tenant_data()
 
     def refresh_page(self):
         """Refresh the tenant list when the page is opened or refreshed."""

@@ -61,3 +61,13 @@ class SimpleTable(tk.Frame):
             self.empty_label.pack_forget()
         elif not self.empty_label.winfo_ismapped():
             self.empty_label.pack(anchor="w", padx=4, pady=(8, 0))
+
+    def get_selected_index(self):
+        """Return the index of the selected row, or None when no row is selected."""
+
+        selected_items = self.tree.selection()
+        if not selected_items:
+            return None
+
+        table_items = self.tree.get_children()
+        return table_items.index(selected_items[0])

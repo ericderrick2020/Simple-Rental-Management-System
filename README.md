@@ -24,7 +24,7 @@ I completed the reusable components:
 - `StatCard` gives a small box for dashboard numbers.
 - `SimpleTable` gives a reusable table space for future lists.
 
-I also created starter pages:
+I also created working pages:
 
 - `Dashboard`
 - `Properties`
@@ -32,7 +32,8 @@ I also created starter pages:
 - `Payments`
 - `Settings`
 
-These pages do not have the full UI yet. They only have empty spaces and comments showing where to add the UI later.
+The Properties, Tenants, and Payments pages can add, list, refresh, and delete or print records from MySQL.
+The Tenants form also lets you select KYC and LC1 letter image files and save extra tenant notes.
 
 ## How The App Works
 
@@ -101,4 +102,8 @@ The default database settings are in `config/settings.py`:
 - Password: empty
 - Database: `rental_management_system`
 
-The Tenants form now loads properties into a dropdown. If MySQL is not installed or running yet, the app will still show sample properties so development can continue.
+The Tenants form now loads properties into a dropdown. It also stores optional KYC image paths, LC1 letter paths, and extra notes.
+
+When deleting a tenant, the app also deletes that tenant's payment records. When deleting a property, the app also deletes tenants and payments linked to that property.
+
+The Payments form includes a Balance field that defaults to `0`. The app saves the amount paid as the main amount minus the balance. Select a payment and click Print Receipt to generate a printable receipt in `data/receipts`.

@@ -1,4 +1,7 @@
 from datetime import datetime
+import os
+from pathlib import Path
+import platform
 
 import tkinter as tk
 from tkinter import messagebox, ttk
@@ -8,6 +11,7 @@ from config.settings import COLORS, FONTS
 from data.database import (
     DatabaseUnavailable,
     add_payment as save_payment_to_database,
+    get_app_settings,
     get_payments,
     get_tenant_options,
 )
@@ -33,6 +37,13 @@ class PaymentsPage(BasePage):
         )
         self.refresh_button.pack(side="right", padx=(0, 20))
 
+        self.print_receipt_button = self.create_secondary_button(
+            self.header_actions,
+            text="Print Receipt",
+            command=self.print_selected_receipt,
+        )
+        self.print_receipt_button.pack(side="right", padx=(0, 8))
+
         self.record_payment_button = self.create_primary_button(
             self.header_actions,
             text="+ Record Payment",
@@ -44,17 +55,22 @@ class PaymentsPage(BasePage):
         self.payment_columns = (
             "Tenant",
             "Property / Unit",
-            "Amount",
+            "Amount Paid",
+            "Balance",
             "Payment Date",
             "Method",
             "Status",
         )
         self.payment_rows = []
+        self.payment_records = []
         self.tenant_options = []
         self.tenant_lookup = {}
+        self.receipts_dir = Path(__file__).resolve().parent.parent / "data" / "receipts"
 
         # The table displays the payment list on the main page.
-        self.payment_table = SimpleTable(self.content_frame, columns=self.payment_columns)
+        self.payment_table = SimpleTable(
+            self.content_frame, columns=self.payment_columns
+        )
         self.payment_table.pack(fill="both", expand=True, padx=20, pady=20)
 
         self.load_payment_data()
@@ -98,12 +114,16 @@ class PaymentsPage(BasePage):
 
         self._create_form_label(form_frame, "Tenant", 2, 0)
         tenant_field = self._create_tenant_dropdown(form_frame, entries)
-        tenant_field.grid(row=2, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
+        tenant_field.grid(
+            row=2, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4
+        )
         entries["tenant"] = tenant_field
 
         self._create_form_label(form_frame, "Property / Unit", 2, 2)
         property_unit_field = self._create_entry(form_frame)
-        property_unit_field.grid(row=2, column=3, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=6)
+        property_unit_field.grid(
+            row=2, column=3, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=6
+        )
         property_unit_field.config(state="readonly")
         entries["property_unit"] = property_unit_field
 
@@ -112,17 +132,27 @@ class PaymentsPage(BasePage):
 
         # Each field definition tells the loop where to place that input on the form.
         fields = [
-            ("amount", "Amount", 3, 0),
+            ("amount", "Main Amount", 3, 0),
             ("payment_date", "Payment Date", 3, 2),
-            ("reference", "Reference No.", 5, 0),
-            ("notes", "Notes", 5, 2),
+            ("balance", "Balance", 5, 0),
+            ("reference", "Reference No.", 5, 2),
+            ("notes", "Notes", 6, 0),
         ]
 
         for field_name, label_text, row, column in fields:
             self._create_form_label(form_frame, label_text, row, column)
             entry = self._create_entry(form_frame)
-            entry.grid(row=row, column=column + 1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=6)
+            entry.grid(
+                row=row,
+                column=column + 1,
+                sticky="ew",
+                padx=(12, 18),
+                pady=(0, 14),
+                ipady=6,
+            )
             entries[field_name] = entry
+
+        entries["balance"].insert(0, "0")
 
         # Drop-downs are useful for values that should come from a fixed list.
         self._create_form_label(form_frame, "Payment Method", 4, 0)
@@ -134,7 +164,9 @@ class PaymentsPage(BasePage):
             width=26,
         )
         method_field.current(1)
-        method_field.grid(row=4, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
+        method_field.grid(
+            row=4, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4
+        )
         entries["method"] = method_field
 
         # Payment status is also controlled by a drop-down to keep records consistent.
@@ -147,17 +179,21 @@ class PaymentsPage(BasePage):
             width=26,
         )
         status_field.current(0)
-        status_field.grid(row=4, column=3, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
+        status_field.grid(
+            row=4, column=3, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4
+        )
         entries["status"] = status_field
 
         if self.tenant_lookup:
             self._fill_payment_details_from_tenant(entries, tenant_field.get())
 
         button_frame = tk.Frame(form_frame, bg=COLORS["surface"])
-        button_frame.grid(row=6, column=0, columnspan=4, sticky="e", pady=(8, 0))
+        button_frame.grid(row=7, column=0, columnspan=4, sticky="e", pady=(8, 0))
 
         # Cancel closes the form. Save validates the data before adding it to the table.
-        self.create_secondary_button(button_frame, "Cancel", modal.destroy).pack(side="left", padx=(0, 8))
+        self.create_secondary_button(button_frame, "Cancel", modal.destroy).pack(
+            side="left", padx=(0, 8)
+        )
         self.create_primary_button(
             button_frame,
             "Save Payment",
@@ -189,7 +225,9 @@ class PaymentsPage(BasePage):
 
         tenant_field.bind(
             "<<ComboboxSelected>>",
-            lambda event: self._fill_payment_details_from_tenant(entries, tenant_field.get()),
+            lambda event: self._fill_payment_details_from_tenant(
+                entries, tenant_field.get()
+            ),
         )
 
         return tenant_field
@@ -212,7 +250,9 @@ class PaymentsPage(BasePage):
             return
 
         if "property_unit" in entries:
-            property_unit = f"{tenant_record['property_name']} / {tenant_record['unit_number']}"
+            property_unit = (
+                f"{tenant_record['property_name']} / {tenant_record['unit_number']}"
+            )
             entries["property_unit"].config(state="normal")
             entries["property_unit"].delete(0, tk.END)
             entries["property_unit"].insert(0, property_unit)
@@ -263,6 +303,7 @@ class PaymentsPage(BasePage):
         tenant = entries["tenant"].get().strip()
         property_unit = entries["property_unit"].get().strip()
         amount = entries["amount"].get().strip()
+        balance = entries["balance"].get().strip() or "0"
         payment_date = entries["payment_date"].get().strip()
         reference = entries["reference"].get().strip()
         notes = entries["notes"].get().strip()
@@ -289,15 +330,46 @@ class PaymentsPage(BasePage):
             return
 
         try:
-            payment_amount = float(amount.replace(",", "").replace("UGX", "").strip())
+            main_amount = self._parse_money(amount)
         except ValueError:
             messagebox.showwarning(
                 "Invalid Amount",
-                "Please enter a valid payment amount.",
+                "Please enter the main amount as a number.",
                 parent=modal,
             )
             entries["amount"].focus_set()
             return
+
+        try:
+            balance_amount = self._parse_money(balance)
+        except ValueError:
+            messagebox.showwarning(
+                "Invalid Balance",
+                "Please enter the balance as a number. Use 0 if there is no balance.",
+                parent=modal,
+            )
+            entries["balance"].focus_set()
+            return
+
+        if balance_amount < 0:
+            messagebox.showwarning(
+                "Invalid Balance",
+                "Balance cannot be below zero.",
+                parent=modal,
+            )
+            entries["balance"].focus_set()
+            return
+
+        if balance_amount > main_amount:
+            messagebox.showwarning(
+                "Invalid Balance",
+                "Balance cannot be greater than the main amount.",
+                parent=modal,
+            )
+            entries["balance"].focus_set()
+            return
+
+        payment_amount = main_amount - balance_amount
 
         try:
             datetime.strptime(payment_date, "%Y-%m-%d")
@@ -313,6 +385,7 @@ class PaymentsPage(BasePage):
         payment_data = {
             "tenant_id": selected_tenant["tenant_id"],
             "amount": payment_amount,
+            "balance": balance_amount,
             "payment_date": payment_date,
             "payment_method": method,
             "reference_no": reference,
@@ -344,21 +417,124 @@ class PaymentsPage(BasePage):
     def load_payment_data(self):
         """Load payment rows from the database."""
 
-        database_rows = get_payments()
+        self.payment_records = get_payments()
 
         self.payment_rows = [
             (
                 row["tenant_name"],
                 f"{row['property_name']} / {row['unit_number']}",
                 f"UGX {float(row['amount']):,.2f}",
+                f"UGX {float(row['balance']):,.2f}",
                 str(row["payment_date"]),
                 row["payment_method"],
                 row["status"],
             )
-            for row in database_rows
+            for row in self.payment_records
         ]
 
         self.payment_table.set_rows(self.payment_rows)
+
+    def _parse_money(self, value):
+        """Convert a money entry into a float."""
+
+        return float(value.replace(",", "").replace("UGX", "").strip())
+
+    def _format_money(self, amount):
+        """Format an amount in the app's currency style."""
+
+        return f"UGX {float(amount):,.2f}"
+
+    def print_selected_receipt(self):
+        """Generate and print a receipt for the selected payment."""
+
+        selected_index = self.payment_table.get_selected_index()
+        if selected_index is None:
+            messagebox.showwarning(
+                "No Payment Selected",
+                "Please select a payment in the table before printing a receipt.",
+                parent=self,
+            )
+            return
+
+        payment_record = self.payment_records[selected_index]
+        receipt_path = self._create_receipt_file(payment_record)
+
+        try:
+            if platform.system() == "Windows":
+                os.startfile(str(receipt_path), "print")
+                messagebox.showinfo(
+                    "Receipt Sent",
+                    f"Receipt was sent to the default printer.\n\nSaved copy:\n{receipt_path}",
+                    parent=self,
+                )
+            else:
+                messagebox.showinfo(
+                    "Receipt Created",
+                    f"Receipt saved here:\n{receipt_path}",
+                    parent=self,
+                )
+        except Exception as exc:
+            messagebox.showerror(
+                "Print Error",
+                f"Receipt was saved, but could not be sent to the printer.\n\n{receipt_path}\n\n{exc}",
+                parent=self,
+            )
+
+    def _create_receipt_file(self, payment_record):
+        """Create a printable receipt text file."""
+
+        settings = get_app_settings()
+        self.receipts_dir.mkdir(parents=True, exist_ok=True)
+
+        payment_id = payment_record["payment_id"]
+        payment_date = str(payment_record["payment_date"])
+        tenant_name = payment_record["tenant_name"]
+        safe_tenant_name = self._safe_filename(tenant_name)
+        receipt_path = (
+            self.receipts_dir / f"receipt_{payment_id}_{safe_tenant_name}.txt"
+        )
+
+        balance = float(payment_record["balance"] or 0)
+        amount_paid = float(payment_record["amount"] or 0)
+        main_amount = amount_paid + balance
+
+        receipt_lines = [
+            settings.get("company_name", "Saipali Rentals"),
+            "RENT PAYMENT RECEIPT",
+            "=" * 42,
+            f"Receipt No.: {payment_id}",
+            f"Payment Date: {payment_date}",
+            "",
+            f"Tenant: {tenant_name}",
+            f"Phone: {payment_record['phone'] or ''}",
+            f"Property: {payment_record['property_name']}",
+            f"Unit: {payment_record['unit_number']}",
+            "",
+            f"Main Amount: {self._format_money(main_amount)}",
+            f"Amount Paid: {self._format_money(amount_paid)}",
+            f"Balance: {self._format_money(balance)}",
+            f"Payment Method: {payment_record['payment_method']}",
+            f"Reference No.: {payment_record['reference_no'] or ''}",
+            f"Status: {payment_record['status']}",
+            "",
+            f"Notes: {payment_record['notes'] or ''}",
+            "",
+            "=" * 42,
+            f"Received by: {settings.get('manager_name', 'Property Manager')}",
+            f"Contact: {settings.get('phone', '')}",
+            f"Email: {settings.get('email', '')}",
+        ]
+
+        receipt_path.write_text("\n".join(receipt_lines), encoding="utf-8")
+        return receipt_path
+
+    def _safe_filename(self, value):
+        """Create a simple file-name-safe value."""
+
+        safe_value = "".join(
+            character if character.isalnum() else "_" for character in value.strip()
+        ).strip("_")
+        return safe_value or "tenant"
 
     def refresh_page(self):
         """Refresh the payment list when the page is opened or refreshed."""
