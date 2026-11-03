@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import messagebox
 
 from components.stat_card import StatCard
 from config.settings import COLORS, FONTS
@@ -20,8 +19,6 @@ class DashboardPage(BasePage):
         self.dashboard_data = self._get_dashboard_data()
         self.stat_cards = {}
         self.metric_blocks = {}
-        self.activity_widgets = []
-        self.rent_status_widgets = []
 
         self.refresh_button = self.create_secondary_button(
             self.header_actions,
@@ -222,16 +219,16 @@ class DashboardPage(BasePage):
         )
 
         actions = [
-            ("Add Property", "Open the Properties page to register a property."),
-            ("Add Tenant", "Open the Tenants page to register a tenant."),
-            ("Record Payment", "Open the Payments page to record rent."),
+            ("Add Property", self.open_property_form),
+            ("Add Tenant", self.open_tenant_form),
+            ("Record Payment", self.open_payment_form),
         ]
 
-        for row, (label, message) in enumerate(actions, start=1):
+        for row, (label, action) in enumerate(actions, start=1):
             button = self.create_primary_button(
                 panel,
                 text=label,
-                command=lambda text=label, note=message: self._show_action_message(text, note),
+                command=action,
             )
             button.grid(row=row, column=0, sticky="ew", padx=16, pady=(4, 8))
 
@@ -245,6 +242,10 @@ class DashboardPage(BasePage):
             title="Recent Activity",
         )
 
+        # Keep activity rows in their own frame so refreshing preserves the title.
+        self.activity_frame = tk.Frame(self.activity_panel, bg=COLORS["surface"])
+        self.activity_frame.grid(row=1, column=0, sticky="ew")
+        self.activity_frame.columnconfigure(0, weight=1)
         self._render_recent_activities()
 
         reminder_panel = self._create_panel(
@@ -266,10 +267,7 @@ class DashboardPage(BasePage):
         reminder_button = self.create_secondary_button(
             reminder_panel,
             text="View Payments",
-            command=lambda: self._show_action_message(
-                "View Payments",
-                "Use the Payments page to review pending and overdue rent.",
-            ),
+            command=self.open_payments_page,
         )
         reminder_button.grid(row=3, column=0, sticky="ew", padx=16, pady=(12, 16))
 
@@ -358,10 +356,10 @@ class DashboardPage(BasePage):
         canvas.percent = percent
         canvas.color = color
 
-        canvas.bind(
-            "<Configure>",
-            lambda event: self._draw_progress(canvas, event.width, canvas.percent, canvas.color),
-        )
+        def redraw(event):
+            self._draw_progress(canvas, event.width, canvas.percent, canvas.color)
+
+        canvas.bind("<Configure>", redraw)
 
         return canvas
 
@@ -387,14 +385,12 @@ class DashboardPage(BasePage):
     def _render_rent_status(self):
         """Draw the current rent status counts."""
 
-        for widget in self.rent_status_widgets:
+        for widget in self.rent_status_frame.winfo_children():
             widget.destroy()
-        self.rent_status_widgets = []
 
         for index, (label, count, color) in enumerate(self.dashboard_data["rent_status"]):
             dot = tk.Label(self.rent_status_frame, text="o", font=FONTS["normal"], bg=COLORS["surface"], fg=color)
             dot.grid(row=index, column=0, sticky="w", pady=2)
-            self.rent_status_widgets.append(dot)
 
             label_widget = tk.Label(
                 self.rent_status_frame,
@@ -404,7 +400,6 @@ class DashboardPage(BasePage):
                 fg=COLORS["text"],
             )
             label_widget.grid(row=index, column=1, sticky="w", padx=(8, 0), pady=2)
-            self.rent_status_widgets.append(label_widget)
 
             count_widget = tk.Label(
                 self.rent_status_frame,
@@ -414,17 +409,15 @@ class DashboardPage(BasePage):
                 fg=COLORS["text_light"],
             )
             count_widget.grid(row=index, column=2, sticky="e", padx=(8, 0), pady=2)
-            self.rent_status_widgets.append(count_widget)
 
     def _render_recent_activities(self):
         """Draw current activity rows."""
 
-        for widget in self.activity_widgets:
+        for widget in self.activity_frame.winfo_children():
             widget.destroy()
-        self.activity_widgets = []
 
         for row, (title, detail) in enumerate(self.dashboard_data["activities"], start=1):
-            self.activity_widgets.append(self._create_activity_row(self.activity_panel, row, title, detail))
+            self._create_activity_row(self.activity_frame, row, title, detail)
 
     def _create_activity_row(self, parent, row, title, detail):
         """Create one recent activity row."""
@@ -451,12 +444,25 @@ class DashboardPage(BasePage):
             justify="left",
         ).grid(row=1, column=0, sticky="w", pady=(2, 0))
 
-        return activity
+    def open_property_form(self):
+        """Show Properties, then open its add form."""
 
-    def _show_action_message(self, title, message):
-        """Show a helpful message until the pages are connected together."""
+        app = self.winfo_toplevel()
+        app.show_page("Properties")
+        app.pages["Properties"].add_property()
 
-        messagebox.showinfo(title, message, parent=self.winfo_toplevel())
+    def open_tenant_form(self):
+        app = self.winfo_toplevel()
+        app.show_page("Tenants")
+        app.pages["Tenants"].add_tenant()
+
+    def open_payment_form(self):
+        app = self.winfo_toplevel()
+        app.show_page("Payments")
+        app.pages["Payments"].record_payment()
+
+    def open_payments_page(self):
+        self.winfo_toplevel().show_page("Payments")
 
     def refresh_page(self):
         """Refresh dashboard values from the current data source."""

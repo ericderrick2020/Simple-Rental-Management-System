@@ -14,7 +14,6 @@ class StatCard(tk.Frame):
             highlightthickness=1,
         )
 
-        # Later you can connect these labels to real property, tenant, or payment data.
         self.value_label = tk.Label(
             self,
             text=value,

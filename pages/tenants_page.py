@@ -6,7 +6,6 @@ from tkinter import filedialog, messagebox, ttk
 from components.simple_table import SimpleTable
 from config.settings import COLORS, FONTS
 from data.database import (
-    DatabaseUnavailable,
     add_tenant as save_tenant_to_database,
     delete_tenant as delete_tenant_from_database,
     get_property_options,
@@ -16,14 +15,14 @@ from pages.base_page import BasePage
 
 
 class TenantsPage(BasePage):
-    """Page where tenant records will be managed."""
+    """Page where tenant records are managed."""
 
     def __init__(self, parent):
         # BasePage creates the title, description, header action area, and body area.
         super().__init__(
             parent,
             title="Tenants",
-            description="This page will store tenant names, contacts, and rental details.",
+            description="Manage tenant names, contacts, and rental details.",
         )
 
         # Header buttons live on the right side of the page title area.
@@ -49,7 +48,7 @@ class TenantsPage(BasePage):
         self.add_tenant_button.pack(side="right", padx=(0, 8))
 
         # These names become the column headings in the tenant table.
-        self.tenant_columns = (
+        columns = (
             "Tenant Name",
             "Phone",
             "Email",
@@ -60,19 +59,16 @@ class TenantsPage(BasePage):
             "LC1 Letter",
             "Extra Details",
         )
-        self.tenant_rows = []
-        self.tenant_records = []
-        self.property_options = []
         self.property_lookup = {}
 
         # SimpleTable is a reusable component that displays rows in a neat table.
-        self.tenant_table = SimpleTable(self.content_frame, columns=self.tenant_columns)
+        self.tenant_table = SimpleTable(self.content_frame, columns=columns)
         self.tenant_table.pack(fill="both", expand=True, padx=20, pady=20)
 
         self.load_tenant_data()
 
     def add_tenant(self):
-        """Open a professional modal form for registering a tenant."""
+        """Open a popup form for registering a tenant."""
 
         # A Toplevel window is a popup window that appears above the main app.
         modal = tk.Toplevel(self)
@@ -122,17 +118,17 @@ class TenantsPage(BasePage):
         ]
 
         for field_name, label_text, row, column in fields:
-            self._create_form_label(form_frame, label_text, row, column)
-            entry = self._create_entry(form_frame)
+            self.create_form_label(form_frame, label_text, row, column)
+            entry = self.create_form_entry(form_frame)
             entry.grid(row=row, column=column + 1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=6)
             entries[field_name] = entry
 
-        self._create_form_label(form_frame, "Property", 3, 2)
+        self.create_form_label(form_frame, "Property", 3, 2)
         property_field = self._create_property_dropdown(form_frame, entries)
         property_field.grid(row=3, column=3, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
         entries["property"] = property_field
 
-        self._create_form_label(form_frame, "KYC Image", 6, 0)
+        self.create_form_label(form_frame, "KYC Image", 6, 0)
         kyc_field = self._create_file_picker(
             form_frame,
             "Select KYC Image",
@@ -145,7 +141,7 @@ class TenantsPage(BasePage):
         kyc_field["frame"].grid(row=6, column=1, sticky="ew", padx=(12, 18), pady=(0, 14))
         entries["kyc_image_path"] = kyc_field["entry"]
 
-        self._create_form_label(form_frame, "LC1 Letter", 6, 2)
+        self.create_form_label(form_frame, "LC1 Letter", 6, 2)
         lc1_field = self._create_file_picker(
             form_frame,
             "Select LC1 Letter Image",
@@ -159,7 +155,7 @@ class TenantsPage(BasePage):
         lc1_field["frame"].grid(row=6, column=3, sticky="ew", padx=(12, 18), pady=(0, 14))
         entries["lc1_letter_path"] = lc1_field["entry"]
 
-        self._create_form_label(form_frame, "Extra Details", 7, 0)
+        self.create_form_label(form_frame, "Extra Details", 7, 0)
         extra_details_field = tk.Text(
             form_frame,
             font=FONTS["normal"],
@@ -182,7 +178,7 @@ class TenantsPage(BasePage):
         entries["extra_details"] = extra_details_field
 
         # Combobox creates a drop-down list, which prevents random status text.
-        self._create_form_label(form_frame, "Status", 8, 0)
+        self.create_form_label(form_frame, "Status", 8, 0)
         status_field = ttk.Combobox(
             form_frame,
             values=("Active", "Pending Move-in", "Notice Given"),
@@ -198,42 +194,24 @@ class TenantsPage(BasePage):
         button_frame.grid(row=9, column=0, columnspan=4, sticky="e", pady=(8, 0))
 
         # The buttons call small functions so the form logic stays easy to read.
+        def save_form(event=None):
+            self.save_tenant(entries, modal)
+
+        def close_form(event):
+            modal.destroy()
+
         self.create_secondary_button(button_frame, "Cancel", modal.destroy).pack(side="left", padx=(0, 8))
         self.create_primary_button(
             button_frame,
             "Save Tenant",
-            lambda: self.save_tenant(entries, modal),
+            save_form,
         ).pack(side="left")
 
         # Keyboard shortcuts make data entry faster for users.
         entries["tenant_name"].focus_set()
-        modal.bind("<Return>", lambda event: self.save_tenant(entries, modal))
-        modal.bind("<Escape>", lambda event: modal.destroy())
+        modal.bind("<Return>", save_form)
+        modal.bind("<Escape>", close_form)
         self.center_modal(modal)
-
-    def _create_form_label(self, parent, text, row, column):
-        """Create a label for one form field."""
-
-        tk.Label(
-            parent,
-            text=text,
-            font=FONTS["button"],
-            bg=COLORS["surface"],
-            fg=COLORS["text"],
-        ).grid(row=row, column=column, sticky="w", pady=(0, 14))
-
-    def _create_entry(self, parent):
-        """Create a standard text input used by the tenant form."""
-
-        return tk.Entry(
-            parent,
-            font=FONTS["normal"],
-            bg=COLORS["white"],
-            fg=COLORS["text"],
-            relief="solid",
-            borderwidth=1,
-            width=28,
-        )
 
     def _create_file_picker(self, parent, title, filetypes, modal):
         """Create a text field and Browse button for document image paths."""
@@ -241,38 +219,29 @@ class TenantsPage(BasePage):
         file_frame = tk.Frame(parent, bg=COLORS["surface"])
         file_frame.columnconfigure(0, weight=1)
 
-        file_entry = self._create_entry(file_frame)
+        file_entry = self.create_form_entry(file_frame)
         file_entry.grid(row=0, column=0, sticky="ew", ipady=6)
 
-        browse_button = self.create_secondary_button(
-            file_frame,
-            "Browse",
-            lambda: self._browse_for_file(file_entry, title, filetypes, modal),
-        )
+        def browse_file():
+            selected_path = filedialog.askopenfilename(
+                parent=modal,
+                title=title,
+                filetypes=filetypes,
+            )
+            if selected_path:
+                file_entry.delete(0, tk.END)
+                file_entry.insert(0, selected_path)
+
+        browse_button = self.create_secondary_button(file_frame, "Browse", browse_file)
         browse_button.grid(row=0, column=1, sticky="e", padx=(8, 0))
-
         return {"frame": file_frame, "entry": file_entry}
-
-    def _browse_for_file(self, entry, title, filetypes, modal):
-        """Open the file picker and place the selected file path in the field."""
-
-        selected_path = filedialog.askopenfilename(
-            parent=modal,
-            title=title,
-            filetypes=filetypes,
-        )
-        if not selected_path:
-            return
-
-        entry.delete(0, tk.END)
-        entry.insert(0, selected_path)
 
     def _create_property_dropdown(self, parent, entries):
         """Create a property dropdown using MySQL records when available."""
 
         self.load_property_options()
 
-        property_names = list(self.property_lookup.keys())
+        property_names = list(self.property_lookup)
         property_field = ttk.Combobox(
             parent,
             values=property_names,
@@ -285,20 +254,20 @@ class TenantsPage(BasePage):
             property_field.current(0)
             self._fill_rent_from_property(entries, property_names[0])
 
-        property_field.bind(
-            "<<ComboboxSelected>>",
-            lambda event: self._fill_rent_from_property(entries, property_field.get()),
-        )
+        def select_property(event):
+            self._fill_rent_from_property(entries, property_field.get())
+
+        property_field.bind("<<ComboboxSelected>>", select_property)
 
         return property_field
 
     def load_property_options(self):
         """Load property names for the tenant form dropdown."""
 
-        self.property_options = get_property_options()
+        property_options = get_property_options()
         self.property_lookup = {}
 
-        for property_record in self.property_options:
+        for property_record in property_options:
             label = f"{property_record['property_name']} - {property_record['location']}"
             self.property_lookup[label] = property_record
 
@@ -307,22 +276,12 @@ class TenantsPage(BasePage):
 
         property_record = self.property_lookup.get(property_label)
 
-        if not property_record or "monthly_rent" not in entries:
+        if not property_record:
             return
 
         monthly_rent = property_record["monthly_rent"]
         entries["monthly_rent"].delete(0, tk.END)
         entries["monthly_rent"].insert(0, str(monthly_rent))
-
-    def center_modal(self, modal):
-        """Center the modal over the application window."""
-
-        modal.update_idletasks()
-        parent = self.winfo_toplevel()
-
-        x = parent.winfo_rootx() + (parent.winfo_width() - modal.winfo_width()) // 2
-        y = parent.winfo_rooty() + (parent.winfo_height() - modal.winfo_height()) // 2
-        modal.geometry(f"+{x}+{y}")
 
     def save_tenant(self, entries, modal):
         """Validate and add a tenant to the table."""
@@ -397,13 +356,6 @@ class TenantsPage(BasePage):
 
         try:
             save_tenant_to_database(tenant_data)
-        except DatabaseUnavailable as exc:
-            messagebox.showerror(
-                "Database Unavailable",
-                f"Tenant could not be saved because MySQL is unavailable.\n\n{exc}",
-                parent=modal,
-            )
-            return
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",
@@ -421,8 +373,9 @@ class TenantsPage(BasePage):
 
         self.tenant_records = get_tenants()
 
-        self.tenant_rows = [
-            (
+        rows = []
+        for row in self.tenant_records:
+            rows.append((
                 row["tenant_name"],
                 row["phone"],
                 row["email"] or "",
@@ -432,11 +385,9 @@ class TenantsPage(BasePage):
                 self._display_file_name(row["kyc_image_path"]),
                 self._display_file_name(row["lc1_letter_path"]),
                 self._shorten_text(row["extra_details"] or ""),
-            )
-            for row in self.tenant_records
-        ]
+            ))
 
-        self.tenant_table.set_rows(self.tenant_rows)
+        self.tenant_table.set_rows(rows)
 
     def _display_file_name(self, file_path):
         """Show a compact file name in the table."""
@@ -481,13 +432,6 @@ class TenantsPage(BasePage):
 
         try:
             delete_tenant_from_database(tenant_record["tenant_id"])
-        except DatabaseUnavailable as exc:
-            messagebox.showerror(
-                "Database Unavailable",
-                f"Tenant could not be deleted because MySQL is unavailable.\n\n{exc}",
-                parent=self,
-            )
-            return
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",

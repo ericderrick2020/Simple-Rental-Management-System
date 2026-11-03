@@ -1,0 +1,9 @@
+{
+  "source_checks": 10,
+  "logout_widget_checks": 3,
+  "passed": 13,
+  "failed": 0,
+  "live_database_verified": false,
+  "physical_printing_verified": false,
+  "screenshot_mode": "Real application widgets; controlled sample data; MySQL calls mocked"
+}

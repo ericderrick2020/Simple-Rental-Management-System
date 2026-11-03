@@ -1,109 +1,98 @@
 # Rental Management System
 
-This is a simple Python Tkinter project for a rental management system.
+A Python desktop application built with Tkinter and MySQL. It manages properties,
+tenants, rent payment records, company settings, and printable text receipts.
 
-## Where I Started
+## Requirements
 
-I started by checking the project folders:
+- Python with Tkinter support; checked with Python 3.13.5.
+- A running MySQL server with the application's tables already configured.
+- The connector listed in `requirements.txt`.
+- Windows and a default printer for automatic receipt printing.
 
-- `main.py` starts the application.
-- `config/settings.py` stores app colors, fonts, width, and height.
-- `components/` stores reusable parts like the header, sidebar, stat cards, and tables.
-- `pages/` stores each app page.
+## Setup and run
 
-Some files were already started, but a few were still empty or unfinished.
+From the project folder:
 
-## What I Did
-
-I fixed the main structure so the app can open and move between pages.
-
-I completed the reusable components:
-
-- `Header` shows the current page title.
-- `Sidebar` shows the menu buttons.
-- `StatCard` gives a small box for dashboard numbers.
-- `SimpleTable` gives a reusable table space for future lists.
-
-I also created working pages:
-
-- `Dashboard`
-- `Properties`
-- `Tenants`
-- `Payments`
-- `Settings`
-
-The Properties, Tenants, and Payments pages can add, list, refresh, and delete or print records from MySQL.
-The Tenants form also lets you select KYC and LC1 letter image files and save extra tenant notes.
-
-## How The App Works
-
-When you run `main.py`, the app creates the main window.
-
-Then it creates the sidebar on the left side.
-
-Then it creates the header at the top.
-
-Then it creates all pages one time and stores them in a dictionary called `self.pages`.
-
-When you click a sidebar button, the app shows the correct page and changes the header title.
-
-## Where To Add UI Later
-
-Open the page file you want to work on inside the `pages/` folder.
-
-For example:
-
-- Add dashboard content in `pages/dashboard_page.py`.
-- Add property content in `pages/properties_page.py`.
-- Add tenant content in `pages/tenants_page.py`.
-- Add payment content in `pages/payments_page.py`.
-- Add settings content in `pages/settings_page.py`.
-
-Look for comments that say where to add future content. That is the place to build your forms, tables, buttons, and labels.
-
-## How To Run
-
-Use this command:
-
-```bash
+```powershell
+python -m pip install -r requirements.txt
 python main.py
 ```
 
-If your computer uses `py` instead of `python`, use:
+The current demonstration login is username `eric` and password `12345`.
 
-```bash
-py main.py
+The application requires `users`, `properties`, `tenants`, `payments`, and
+`app_settings` tables. Startup checks access; it does not create tables, import a
+schema, or add sample records. A verified database setup/export is still required
+for a fresh installation. See `data/database.py` and the final report for fields.
+
+Database connection settings come from environment variables, with defaults in
+`config/settings.py`:
+
+| Variable | Default |
+| --- | --- |
+| `RMS_DB_HOST` | `localhost` |
+| `RMS_DB_PORT` | `3306` |
+| `RMS_DB_USER` | `root` |
+| `RMS_DB_PASSWORD` | Empty |
+| `RMS_DB_NAME` | `rental_management_system` |
+
+The program reads process environment variables directly; it does not load a
+`.env` file automatically. Do not commit local database credentials.
+
+## Project layout
+
+| Path | Contents |
+| --- | --- |
+| `main.py` | Startup, login, and navigation |
+| `config/` | Appearance and connection settings |
+| `components/` | Shared header, sidebar, cards, and tables |
+| `pages/` | Dashboard, properties, tenants, payments, and settings |
+| `data/database.py` | MySQL queries and transactions |
+| `data/receipts/` | Created for receipts; excluded from Git |
+| `assets/` | Earlier report screenshots |
+| `reports/` | Finished reports, screenshots, diagrams, and test evidence |
+| `reports/reference/` | Earlier design documents and guidelines |
+| `report_checks.py` | Read-only syntax and isolated function checks |
+
+## Using the application
+
+1. Add a property before registering its tenants.
+2. Register a tenant using the property dropdown. Optional document fields store
+   local paths; keep those documents in an accessible, stable location.
+3. Record a payment using the tenant dropdown. The saved amount paid is the main
+   amount minus the balance entered on the form.
+4. Select a payment and click **Print Receipt** to create a text receipt in
+   `data/receipts/` and request printing on Windows.
+5. Open Dashboard for summaries or Settings for company preferences.
+6. Click **Logout** at the bottom of the sidebar to return to a fresh login screen.
+   Open forms are closed and unsaved entries are discarded. Saved records remain
+   in MySQL. Enter your password again to access the application.
+
+Deleting a tenant also deletes their payments. Deleting a property deletes its
+tenants and related payments after confirmation. Back up the database before
+deleting records.
+
+## Verification
+
+```powershell
+python -B report_checks.py
 ```
 
-### AUTH DETAILS
-- Username: eric
-- Password: 12345
+These checks parse application files and exercise selected login, money, date,
+and balance logic using simulated controls and database calls. They do not
+change rental records or verify live MySQL access or physical printing. Results
+are written to `reports/test_evidence.json`.
 
-## MySQL Database Setup
+## Deployment status
 
-This project now includes a MySQL database schema in `data/schema.sql`.
+The folder has been cleaned for handover, but the application is still a
+prototype. Real deployment requires secure authentication, a verified database
+setup, suitable database credentials, and live integration testing. Editing,
+filtered search, full lease tracking, history-preserving archiving, and the
+approved detailed reports and exports remain incomplete. Reminder preferences
+do not send messages. See Phase 3 for the full evaluation.
 
-Install the Python MySQL connector:
-
-```bash
-pip install -r requirements.txt
-```
-
-Create the database using MySQL or XAMPP:
-
-```bash
-mysql -u root < data/schema.sql
-```
-
-The default database settings are in `config/settings.py`:
-
-- Host: `localhost`
-- User: `root`
-- Password: empty
-- Database: `rental_management_system`
-
-The Tenants form now loads properties into a dropdown. It also stores optional KYC image paths, LC1 letter paths, and extra notes.
-
-When deleting a tenant, the app also deletes that tenant's payment records. When deleting a property, the app also deletes tenants and payments linked to that property.
-
-The Payments form includes a Balance field that defaults to `0`. The app saves the amount paid as the main amount minus the balance. Select a payment and click Print Receipt to generate a printable receipt in `data/receipts`.
+The runtime needs `main.py`, `config/`, `components/`, `pages/`, `data/database.py`,
+the package `__init__.py` files, and installed requirements. Reports, report
+images, and the check script are supporting handover material.

@@ -1,19 +1,14 @@
-from pathlib import Path
-
 from config.settings import DATABASE_CONFIG, DEFAULT_USERNAME
 
 
-SCHEMA_FILE = Path(__file__).with_name("schema.sql")
-
 DEFAULT_APP_SETTINGS = {
-    "company_name": "Saipali Rentals",
+    "company_name": "Biggie Rentals",
     "manager_name": "Property Manager",
     "phone": "+256 700 000 000",
     "email": "manager@example.com",
     "currency": "UGX",
     "rent_due_day": "5",
     "late_fee": "50000",
-    "theme": "Light",
     "email_reminders": "1",
     "sms_reminders": "1",
     "backup_reminder": "0",
@@ -52,25 +47,26 @@ def get_connection(use_database=True):
 
 
 def initialize_database():
-    """Create the project database and starter tables if MySQL is available."""
+    """Check the configured MySQL database without importing files or seed data."""
 
-    statements = _read_schema_statements()
-
-    try:
-        connection = get_connection(use_database=False)
-    except DatabaseUnavailable:
-        return False
-
+    connector = _load_connector()
+    connection = get_connection()
+    cursor = None
     try:
         cursor = connection.cursor()
-        for statement in statements:
-            cursor.execute(statement)
-        cursor.execute(f"USE {DATABASE_CONFIG['database']}")
-        _ensure_optional_columns(cursor)
-        connection.commit()
+        for table in ("users", "properties", "tenants", "payments", "app_settings"):
+            cursor.execute(f"SELECT * FROM `{table}` LIMIT 0")
+            cursor.fetchall()
         return True
+    except connector.Error as exc:
+        raise DatabaseUnavailable(
+            f"Cannot read the configured MySQL database "
+            f"{DATABASE_CONFIG['database']!r}: {exc}. "
+            "Check the database tables and connection settings."
+        ) from exc
     finally:
-        cursor.close()
+        if cursor is not None:
+            cursor.close()
         connection.close()
 
 
@@ -557,7 +553,9 @@ def get_app_settings():
         )
 
         for row in cursor.fetchall():
-            settings[row["setting_key"]] = row["setting_value"]
+            key = row["setting_key"]
+            if key in settings:
+                settings[key] = row["setting_value"]
 
         return settings
     finally:
@@ -635,45 +633,3 @@ def get_account_settings(username=DEFAULT_USERNAME):
     finally:
         cursor.close()
         connection.close()
-
-
-def _read_schema_statements():
-    """Split the class-project SQL file into individual statements."""
-
-    content = SCHEMA_FILE.read_text(encoding="utf-8")
-    statements = []
-
-    for chunk in content.split(";"):
-        statement = chunk.strip()
-        if statement:
-            statements.append(statement)
-
-    return statements
-
-
-def _ensure_optional_columns(cursor):
-    """Add columns introduced after the original class-project schema."""
-
-    columns = {
-        "properties": {
-            "extra_details": "TEXT",
-        },
-        "tenants": {
-            "kyc_image_path": "VARCHAR(500)",
-            "lc1_letter_path": "VARCHAR(500)",
-            "extra_details": "TEXT",
-        },
-        "payments": {
-            "balance": "DECIMAL(12, 2) NOT NULL DEFAULT 0.00",
-        },
-    }
-
-    for table_name, table_columns in columns.items():
-        cursor.execute(f"SHOW COLUMNS FROM {table_name}")
-        existing_columns = {row[0] for row in cursor.fetchall()}
-
-        for column_name, column_type in table_columns.items():
-            if column_name not in existing_columns:
-                cursor.execute(
-                    f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
-                )

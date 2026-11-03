@@ -41,7 +41,7 @@ class SimpleTable(tk.Frame):
 
         self.empty_label = tk.Label(
             self,
-            text="Table space is ready. Add rows here when you connect your data.",
+            text="No records found.",
             font=FONTS["small"],
             bg=COLORS["surface"],
             fg=COLORS["text_light"],

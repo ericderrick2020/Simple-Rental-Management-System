@@ -1,0 +1,34 @@
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local dependencies and generated build files
+.report_tools/
+.vendor/
+build/
+dist/
+*.egg-info/
+
+# Local configuration and sensitive generated records
+.env
+.env.*
+!.env.example
+data/receipts/
+*.log
+
+# Editor and operating-system temporary files
+.idea/
+.vscode/
+Thumbs.db
+Desktop.ini
+.DS_Store
+~$*
+*.tmp

@@ -6,7 +6,7 @@ from config.settings import APP_NAME, COLORS, FONTS
 class Sidebar(tk.Frame):
     """Left menu used to move between pages."""
 
-    def __init__(self, parent, page_change_function):
+    def __init__(self, parent, page_change_function, logout_function):
         super().__init__(parent, bg=COLORS["sidebar"], width=220)
 
         # Keep the sidebar width stable.
@@ -54,6 +54,24 @@ class Sidebar(tk.Frame):
             )
             button.pack(fill="x", padx=10, pady=3)
             self.buttons[page_name] = button
+
+        self.logout_button = tk.Button(
+            self,
+            text="Logout",
+            font=FONTS["button"],
+            bg=COLORS["sidebar"],
+            fg=COLORS["white"],
+            activebackground=COLORS["sidebar_hover"],
+            activeforeground=COLORS["white"],
+            relief="flat",
+            borderwidth=0,
+            anchor="w",
+            padx=20,
+            pady=12,
+            cursor="hand2",
+            command=logout_function,
+        )
+        self.logout_button.pack(side="bottom", fill="x", padx=10, pady=(12, 20))
 
     def set_active_button(self, active_page_name):
         """Highlight the button for the page that is currently open."""

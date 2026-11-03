@@ -1,0 +1,82 @@
+[
+  {
+    "id": "T01",
+    "feature": "Source syntax",
+    "condition": "Parse all application Python files",
+    "expected": "No syntax errors",
+    "actual": "All 18 application Python files parsed successfully.",
+    "status": "Pass"
+  },
+  {
+    "id": "T02",
+    "feature": "Money conversion",
+    "condition": "UGX 1,200,000",
+    "expected": "1200000.0",
+    "actual": "Returned 1200000.0.",
+    "status": "Pass"
+  },
+  {
+    "id": "T03",
+    "feature": "Money conversion",
+    "condition": "abc",
+    "expected": "ValueError",
+    "actual": "Raised ValueError as expected.",
+    "status": "Pass"
+  },
+  {
+    "id": "T04",
+    "feature": "Receipt filename",
+    "condition": "Sarah / Namuli",
+    "expected": "Replace spaces and slash with underscores",
+    "actual": "Returned Sarah___Namuli.",
+    "status": "Pass"
+  },
+  {
+    "id": "T05",
+    "feature": "Login logic",
+    "condition": "Correct default credentials; mocked controls",
+    "expected": "Allow login",
+    "actual": "Success callback called; no error message.",
+    "status": "Pass"
+  },
+  {
+    "id": "T06",
+    "feature": "Login logic",
+    "condition": "Wrong password; mocked controls",
+    "expected": "Reject login and clear password",
+    "actual": "Error requested, password cleared, success callback not called.",
+    "status": "Pass"
+  },
+  {
+    "id": "T07",
+    "feature": "Partial payment",
+    "condition": "Main amount 500000, balance 150000, date 2026-11-02",
+    "expected": "Save amount paid 350000",
+    "actual": "Save received amount 350000 and balance 150000; no real database write.",
+    "status": "Pass"
+  },
+  {
+    "id": "T08",
+    "feature": "Balance validation",
+    "condition": "Balance -1",
+    "expected": "Invalid Balance; block save",
+    "actual": "Invalid Balance warning requested; database save not called.",
+    "status": "Pass"
+  },
+  {
+    "id": "T09",
+    "feature": "Balance validation",
+    "condition": "Balance 600000, main amount 500000",
+    "expected": "Invalid Balance; block save",
+    "actual": "Invalid Balance warning requested; database save not called.",
+    "status": "Pass"
+  },
+  {
+    "id": "T10",
+    "feature": "Date validation",
+    "condition": "2026-02-30",
+    "expected": "Invalid Date; block save",
+    "actual": "Invalid Date warning requested; database save not called.",
+    "status": "Pass"
+  }
+]

@@ -1,9 +1,10 @@
 import tkinter as tk
+from tkinter import messagebox
 
 from components.header import Header
 from components.sidebar import Sidebar
 from config.settings import APP_NAME, APP_HEIGHT, APP_WIDTH, COLORS
-from data.database import initialize_database
+from data.database import DatabaseUnavailable, initialize_database
 from pages.dashboard_page import DashboardPage
 from pages.login_page import LoginPage
 from pages.payments_page import PaymentsPage
@@ -39,8 +40,14 @@ class RentalManagementApp(tk.Tk):
         # Store the name of the current page
         self.current_page_name = "Dashboard"
 
-        # Create MySQL tables when the database server and connector are available.
-        self.database_ready = initialize_database()
+        # Require the configured MySQL database before displaying its records.
+        try:
+            self.database_ready = initialize_database()
+        except DatabaseUnavailable as exc:
+            self.withdraw()
+            messagebox.showerror("Database unavailable", str(exc), parent=self)
+            self.destroy()
+            raise
 
         # Make the login page fill the starting window.
         self.rowconfigure(0, weight=1)
@@ -67,7 +74,11 @@ class RentalManagementApp(tk.Tk):
         self.columnconfigure(1, weight=1)
 
         # Create the sidebar
-        self.sidebar = Sidebar(parent=self, page_change_function=self.show_page)
+        self.sidebar = Sidebar(
+            parent=self,
+            page_change_function=self.show_page,
+            logout_function=self.logout,
+        )
         self.sidebar.grid(row=0, column=0, sticky="ns")
 
         # Create the right side of the application.
@@ -95,6 +106,27 @@ class RentalManagementApp(tk.Tk):
 
         # Show the dashboard when the application starts
         self.show_page("Dashboard")
+
+    def logout(self):
+        """Discard the open interface and require a fresh login."""
+        if self.login_page is not None:
+            return
+
+        # Destroying the page containers also closes their open popup forms.
+        for widget in self.winfo_children():
+            widget.destroy()
+
+        self.pages.clear()
+        self.current_page_name = None
+        self.sidebar = None
+        self.main_area = None
+        self.header = None
+        self.page_container = None
+
+        # Restore the single-column layout used by the login screen.
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=0)
+        self.show_login_page()
 
     def create_pages(self):
         """Create every page only once."""
@@ -133,10 +165,12 @@ class RentalManagementApp(tk.Tk):
         self.current_page_name = page_name
 
         # Refresh the page when it becomes visible
-        if hasattr(page, "refresh_page"):
-            page.refresh_page()
+        page.refresh_page()
 
 
 if __name__ == "__main__":
-    app = RentalManagementApp()
+    try:
+        app = RentalManagementApp()
+    except DatabaseUnavailable as exc:
+        raise SystemExit(str(exc)) from None
     app.mainloop()

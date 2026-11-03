@@ -4,7 +4,6 @@ from tkinter import messagebox, ttk
 from config.settings import COLORS, FONTS
 from data.database import (
     DEFAULT_APP_SETTINGS,
-    DatabaseUnavailable,
     get_account_settings,
     get_app_settings,
     save_app_settings,
@@ -35,10 +34,9 @@ class SettingsPage(BasePage):
         self.currency_var = tk.StringVar(value=self.settings_data["currency"])
         self.rent_due_day_var = tk.StringVar(value=self.settings_data["rent_due_day"])
         self.late_fee_var = tk.StringVar(value=self.settings_data["late_fee"])
-        self.theme_var = tk.StringVar(value=self.settings_data["theme"])
-        self.email_reminders_var = tk.BooleanVar(value=self._setting_is_enabled("email_reminders"))
-        self.sms_reminders_var = tk.BooleanVar(value=self._setting_is_enabled("sms_reminders"))
-        self.backup_var = tk.BooleanVar(value=self._setting_is_enabled("backup_reminder"))
+        self.email_reminders_var = tk.BooleanVar(value=self.settings_data["email_reminders"] == "1")
+        self.sms_reminders_var = tk.BooleanVar(value=self.settings_data["sms_reminders"] == "1")
+        self.backup_var = tk.BooleanVar(value=self.settings_data["backup_reminder"] == "1")
 
         self.refresh_button = self.create_secondary_button(
             self.header_actions,
@@ -92,7 +90,6 @@ class SettingsPage(BasePage):
         self._create_select(panel, "Default Currency", self.currency_var, ("UGX", "USD", "KES"), 1)
         self._create_entry(panel, "Rent Due Day", self.rent_due_day_var, 2)
         self._create_entry(panel, "Late Fee Amount", self.late_fee_var, 3)
-        self._create_select(panel, "App Theme", self.theme_var, ("Light", "Dark", "System"), 4)
 
     def _create_notification_panel(self):
         """Create the reminder and backup settings section."""
@@ -261,15 +258,26 @@ class SettingsPage(BasePage):
             )
             return
 
+        self._save_settings(
+            self._collect_settings(),
+            "Settings Saved",
+            "Settings changed successfully.",
+        )
+
+    def reset_settings(self):
+        """Save the default settings, then update the form."""
+
+        self._save_settings(
+            DEFAULT_APP_SETTINGS.copy(),
+            "Settings Reset",
+            "Default settings have been saved to the database.",
+        )
+
+    def _save_settings(self, settings, title, message):
+        """Save and reset use the same database error handling."""
+
         try:
-            save_app_settings(self._collect_settings())
-        except DatabaseUnavailable as exc:
-            messagebox.showerror(
-                "Database Unavailable",
-                f"Settings could not be saved because MySQL is unavailable.\n\n{exc}",
-                parent=self.winfo_toplevel(),
-            )
-            return
+            save_app_settings(settings)
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",
@@ -279,40 +287,7 @@ class SettingsPage(BasePage):
             return
 
         self.refresh_page()
-        messagebox.showinfo(
-            "Settings Saved",
-            "Settings changed successfully.",
-            parent=self.winfo_toplevel(),
-        )
-
-    def reset_settings(self):
-        """Reset the settings form to defaults and save them to the database."""
-
-        self._apply_settings(DEFAULT_APP_SETTINGS)
-
-        try:
-            save_app_settings(self._collect_settings())
-        except DatabaseUnavailable as exc:
-            messagebox.showerror(
-                "Database Unavailable",
-                f"Default settings could not be saved because MySQL is unavailable.\n\n{exc}",
-                parent=self.winfo_toplevel(),
-            )
-            return
-        except Exception as exc:
-            messagebox.showerror(
-                "Database Error",
-                f"Default settings could not be saved to MySQL.\n\n{exc}",
-                parent=self.winfo_toplevel(),
-            )
-            return
-
-        self.refresh_page()
-        messagebox.showinfo(
-            "Settings Reset",
-            "Default settings have been saved to the database.",
-            parent=self.winfo_toplevel(),
-        )
+        messagebox.showinfo(title, message, parent=self.winfo_toplevel())
 
     def refresh_page(self):
         """Refresh settings and account values from the database."""
@@ -321,11 +296,6 @@ class SettingsPage(BasePage):
         self.account_data = get_account_settings()
         self._apply_settings(self.settings_data)
         self._apply_account_settings()
-
-    def _setting_is_enabled(self, key):
-        """Return True when a saved checkbox setting is enabled."""
-
-        return self.settings_data.get(key) == "1"
 
     def _collect_settings(self):
         """Collect the current form values for database storage."""
@@ -338,11 +308,9 @@ class SettingsPage(BasePage):
             "currency": self.currency_var.get().strip(),
             "rent_due_day": self.rent_due_day_var.get().strip(),
             "late_fee": self.late_fee_var.get().replace(",", "").strip(),
-            "theme": self.theme_var.get().strip(),
             "email_reminders": "1" if self.email_reminders_var.get() else "0",
             "sms_reminders": "1" if self.sms_reminders_var.get() else "0",
             "backup_reminder": "1" if self.backup_var.get() else "0",
-            "two_factor_login": self.account_data["two_factor_login"],
         }
 
     def _apply_settings(self, settings):
@@ -355,7 +323,6 @@ class SettingsPage(BasePage):
         self.currency_var.set(settings["currency"])
         self.rent_due_day_var.set(settings["rent_due_day"])
         self.late_fee_var.set(settings["late_fee"])
-        self.theme_var.set(settings["theme"])
         self.email_reminders_var.set(settings["email_reminders"] == "1")
         self.sms_reminders_var.set(settings["sms_reminders"] == "1")
         self.backup_var.set(settings["backup_reminder"] == "1")

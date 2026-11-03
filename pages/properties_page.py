@@ -4,7 +4,6 @@ from tkinter import messagebox
 from components.simple_table import SimpleTable
 from config.settings import COLORS, FONTS
 from data.database import (
-    DatabaseUnavailable,
     add_property as save_property_to_database,
     delete_property as delete_property_from_database,
     get_properties,
@@ -13,14 +12,14 @@ from pages.base_page import BasePage
 
 
 class PropertiesPage(BasePage):
-    """Page where property records will be managed."""
+    """Page where property records are managed."""
 
     def __init__(self, parent):
         # Initializing the base page structure first
         super().__init__(
             parent,
             title="Properties",
-            description="This page will list rental houses, rooms, or apartments.",
+            description="Manage rental houses, rooms, and apartments.",
         )
 
         refresh_button = self.create_secondary_button(
@@ -46,12 +45,10 @@ class PropertiesPage(BasePage):
         add_property_button.pack(side="right", padx=(0, 8))
 
         # These columns control the headings shown in the properties table.
-        self.property_columns = ("Property Name", "Location", "Units", "Monthly Rent", "Details")
-        self.property_rows = []
-        self.property_records = []
+        columns = ("Property Name", "Location", "Units", "Monthly Rent", "Details")
 
         # Create the table once when the page loads, then update its rows when data changes.
-        self.property_table = SimpleTable(self.content_frame, columns=self.property_columns)
+        self.property_table = SimpleTable(self.content_frame, columns=columns)
         self.property_table.pack(fill="both", expand=True, padx=20, pady=20)
 
         self.load_property_data()
@@ -92,8 +89,7 @@ class PropertiesPage(BasePage):
         entries = {}
 
         # Each tuple stores the dictionary key and the label shown to the user.
-        # We do not ask for a Property ID here because IDs should be created by
-        # the system or database later, not typed manually by the user.
+        # MySQL creates the property ID automatically.
         fields = [
             ("property_name", "Property Name"),
             ("location", "Location"),
@@ -149,64 +145,23 @@ class PropertiesPage(BasePage):
         button_frame = tk.Frame(form_frame, bg=COLORS["surface"])
         button_frame.grid(row=7, column=0, columnspan=2, sticky="e", pady=(8, 0))
 
-        tk.Button(
-            button_frame,
-            text="Cancel",
-            font=FONTS["button"],
-            bg=COLORS["surface"],
-            fg=COLORS["text"],
-            activebackground=COLORS["border"],
-            activeforeground=COLORS["text"],
-            relief="solid",
-            borderwidth=1,
-            padx=16,
-            pady=8,
-            cursor="hand2",
-            command=modal.destroy,
-        ).pack(side="left", padx=(0, 8))
+        def save_form(event=None):
+            self.save_property(entries, modal)
 
-        tk.Button(
-            button_frame,
-            text="Save Property",
-            font=FONTS["button"],
-            bg=COLORS["primary"],
-            fg=COLORS["white"],
-            activebackground=COLORS["primary_hover"],
-            activeforeground=COLORS["white"],
-            relief="flat",
-            borderwidth=0,
-            padx=16,
-            pady=9,
-            cursor="hand2",
-            command=lambda: self.save_property(entries, modal),
-        ).pack(side="left")
+        def close_form(event):
+            modal.destroy()
+
+        self.create_secondary_button(button_frame, "Cancel", modal.destroy).pack(
+            side="left", padx=(0, 8)
+        )
+        self.create_primary_button(button_frame, "Save Property", save_form).pack(side="left")
 
         # Focus and keyboard shortcuts make the modal quicker to use.
         entries["property_name"].focus_set()
-        modal.bind("<Return>", lambda event: self.save_property(entries, modal))
-        modal.bind("<Escape>", lambda event: modal.destroy())
+        modal.bind("<Return>", save_form)
+        modal.bind("<Escape>", close_form)
 
         self.center_modal(modal)
-
-    def center_modal(self, modal):
-        """Center the modal over the main application window."""
-
-        modal.update_idletasks()
-        parent = self.winfo_toplevel()
-
-        parent_x = parent.winfo_rootx()
-        parent_y = parent.winfo_rooty()
-        parent_width = parent.winfo_width()
-        parent_height = parent.winfo_height()
-
-        modal_width = modal.winfo_width()
-        modal_height = modal.winfo_height()
-
-        # Calculate the modal position so it appears in the middle of the app window.
-        x = parent_x + (parent_width - modal_width) // 2
-        y = parent_y + (parent_height - modal_height) // 2
-
-        modal.geometry(f"+{x}+{y}")
 
     def save_property(self, entries, modal):
         """Validate and save a property from the modal form."""
@@ -259,13 +214,6 @@ class PropertiesPage(BasePage):
 
         try:
             save_property_to_database(property_data)
-        except DatabaseUnavailable as exc:
-            messagebox.showerror(
-                "Database Unavailable",
-                f"Property could not be saved because MySQL is unavailable.\n\n{exc}",
-                parent=modal,
-            )
-            return
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",
@@ -283,18 +231,17 @@ class PropertiesPage(BasePage):
 
         self.property_records = get_properties()
 
-        self.property_rows = [
-            (
+        rows = []
+        for row in self.property_records:
+            rows.append((
                 row["property_name"],
                 row["location"],
                 str(row["total_units"]),
                 f"UGX {float(row['monthly_rent']):,.2f}",
                 row["extra_details"] or "",
-            )
-            for row in self.property_records
-        ]
+            ))
 
-        self.property_table.set_rows(self.property_rows)
+        self.property_table.set_rows(rows)
 
     def delete_selected_property(self):
         """Delete the selected property after confirmation."""
@@ -322,13 +269,6 @@ class PropertiesPage(BasePage):
 
         try:
             delete_property_from_database(property_record["property_id"])
-        except DatabaseUnavailable as exc:
-            messagebox.showerror(
-                "Database Unavailable",
-                f"Property could not be deleted because MySQL is unavailable.\n\n{exc}",
-                parent=self,
-            )
-            return
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",

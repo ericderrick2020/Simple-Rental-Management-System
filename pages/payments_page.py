@@ -9,7 +9,6 @@ from tkinter import messagebox, ttk
 from components.simple_table import SimpleTable
 from config.settings import COLORS, FONTS
 from data.database import (
-    DatabaseUnavailable,
     add_payment as save_payment_to_database,
     get_app_settings,
     get_payments,
@@ -19,7 +18,7 @@ from pages.base_page import BasePage
 
 
 class PaymentsPage(BasePage):
-    """Page where rent payments will be managed."""
+    """Page where rent payments are managed."""
 
     def __init__(self, parent):
         # BasePage gives this screen the same layout used by the other pages.
@@ -52,7 +51,7 @@ class PaymentsPage(BasePage):
         self.record_payment_button.pack(side="right", padx=(0, 8))
 
         # Column names must match the order of values added in save_payment().
-        self.payment_columns = (
+        columns = (
             "Tenant",
             "Property / Unit",
             "Amount Paid",
@@ -61,16 +60,11 @@ class PaymentsPage(BasePage):
             "Method",
             "Status",
         )
-        self.payment_rows = []
-        self.payment_records = []
-        self.tenant_options = []
         self.tenant_lookup = {}
         self.receipts_dir = Path(__file__).resolve().parent.parent / "data" / "receipts"
 
         # The table displays the payment list on the main page.
-        self.payment_table = SimpleTable(
-            self.content_frame, columns=self.payment_columns
-        )
+        self.payment_table = SimpleTable(self.content_frame, columns=columns)
         self.payment_table.pack(fill="both", expand=True, padx=20, pady=20)
 
         self.load_payment_data()
@@ -112,23 +106,20 @@ class PaymentsPage(BasePage):
 
         entries = {}
 
-        self._create_form_label(form_frame, "Tenant", 2, 0)
+        self.create_form_label(form_frame, "Tenant", 2, 0)
         tenant_field = self._create_tenant_dropdown(form_frame, entries)
         tenant_field.grid(
             row=2, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4
         )
         entries["tenant"] = tenant_field
 
-        self._create_form_label(form_frame, "Property / Unit", 2, 2)
-        property_unit_field = self._create_entry(form_frame)
+        self.create_form_label(form_frame, "Property / Unit", 2, 2)
+        property_unit_field = self.create_form_entry(form_frame)
         property_unit_field.grid(
             row=2, column=3, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=6
         )
         property_unit_field.config(state="readonly")
         entries["property_unit"] = property_unit_field
-
-        if self.tenant_lookup:
-            self._fill_payment_details_from_tenant(entries, tenant_field.get())
 
         # Each field definition tells the loop where to place that input on the form.
         fields = [
@@ -140,8 +131,8 @@ class PaymentsPage(BasePage):
         ]
 
         for field_name, label_text, row, column in fields:
-            self._create_form_label(form_frame, label_text, row, column)
-            entry = self._create_entry(form_frame)
+            self.create_form_label(form_frame, label_text, row, column)
+            entry = self.create_form_entry(form_frame)
             entry.grid(
                 row=row,
                 column=column + 1,
@@ -155,7 +146,7 @@ class PaymentsPage(BasePage):
         entries["balance"].insert(0, "0")
 
         # Drop-downs are useful for values that should come from a fixed list.
-        self._create_form_label(form_frame, "Payment Method", 4, 0)
+        self.create_form_label(form_frame, "Payment Method", 4, 0)
         method_field = ttk.Combobox(
             form_frame,
             values=("Cash", "Mobile Money", "Bank Transfer", "Card"),
@@ -170,7 +161,7 @@ class PaymentsPage(BasePage):
         entries["method"] = method_field
 
         # Payment status is also controlled by a drop-down to keep records consistent.
-        self._create_form_label(form_frame, "Status", 4, 2)
+        self.create_form_label(form_frame, "Status", 4, 2)
         status_field = ttk.Combobox(
             form_frame,
             values=("Paid", "Pending", "Overdue"),
@@ -191,19 +182,25 @@ class PaymentsPage(BasePage):
         button_frame.grid(row=7, column=0, columnspan=4, sticky="e", pady=(8, 0))
 
         # Cancel closes the form. Save validates the data before adding it to the table.
+        def save_form(event=None):
+            self.save_payment(entries, modal)
+
+        def close_form(event):
+            modal.destroy()
+
         self.create_secondary_button(button_frame, "Cancel", modal.destroy).pack(
             side="left", padx=(0, 8)
         )
         self.create_primary_button(
             button_frame,
             "Save Payment",
-            lambda: self.save_payment(entries, modal),
+            save_form,
         ).pack(side="left")
 
         # Focus puts the typing cursor in the first field when the popup opens.
         entries["tenant"].focus_set()
-        modal.bind("<Return>", lambda event: self.save_payment(entries, modal))
-        modal.bind("<Escape>", lambda event: modal.destroy())
+        modal.bind("<Return>", save_form)
+        modal.bind("<Escape>", close_form)
         self.center_modal(modal)
 
     def _create_tenant_dropdown(self, parent, entries):
@@ -211,7 +208,7 @@ class PaymentsPage(BasePage):
 
         self.load_tenant_options()
 
-        tenant_names = list(self.tenant_lookup.keys())
+        tenant_names = list(self.tenant_lookup)
         tenant_field = ttk.Combobox(
             parent,
             values=tenant_names,
@@ -223,22 +220,20 @@ class PaymentsPage(BasePage):
         if tenant_names:
             tenant_field.current(0)
 
-        tenant_field.bind(
-            "<<ComboboxSelected>>",
-            lambda event: self._fill_payment_details_from_tenant(
-                entries, tenant_field.get()
-            ),
-        )
+        def select_tenant(event):
+            self._fill_payment_details_from_tenant(entries, tenant_field.get())
+
+        tenant_field.bind("<<ComboboxSelected>>", select_tenant)
 
         return tenant_field
 
     def load_tenant_options(self):
         """Load tenants for the payment form dropdown."""
 
-        self.tenant_options = get_tenant_options()
+        tenant_options = get_tenant_options()
         self.tenant_lookup = {}
 
-        for tenant_record in self.tenant_options:
+        for tenant_record in tenant_options:
             label = f"{tenant_record['tenant_name']} - {tenant_record['property_name']} / {tenant_record['unit_number']}"
             self.tenant_lookup[label] = tenant_record
 
@@ -249,52 +244,16 @@ class PaymentsPage(BasePage):
         if not tenant_record:
             return
 
-        if "property_unit" in entries:
-            property_unit = (
-                f"{tenant_record['property_name']} / {tenant_record['unit_number']}"
-            )
-            entries["property_unit"].config(state="normal")
-            entries["property_unit"].delete(0, tk.END)
-            entries["property_unit"].insert(0, property_unit)
-            entries["property_unit"].config(state="readonly")
-
-        if "amount" in entries:
-            entries["amount"].delete(0, tk.END)
-            entries["amount"].insert(0, str(tenant_record["monthly_rent"]))
-
-    def _create_form_label(self, parent, text, row, column):
-        """Create a label for one payment form field."""
-
-        tk.Label(
-            parent,
-            text=text,
-            font=FONTS["button"],
-            bg=COLORS["surface"],
-            fg=COLORS["text"],
-        ).grid(row=row, column=column, sticky="w", pady=(0, 14))
-
-    def _create_entry(self, parent):
-        """Create a standard text input used by the payment form."""
-
-        return tk.Entry(
-            parent,
-            font=FONTS["normal"],
-            bg=COLORS["white"],
-            fg=COLORS["text"],
-            relief="solid",
-            borderwidth=1,
-            width=28,
+        property_unit = (
+            f"{tenant_record['property_name']} / {tenant_record['unit_number']}"
         )
+        entries["property_unit"].config(state="normal")
+        entries["property_unit"].delete(0, tk.END)
+        entries["property_unit"].insert(0, property_unit)
+        entries["property_unit"].config(state="readonly")
 
-    def center_modal(self, modal):
-        """Center the modal over the application window."""
-
-        modal.update_idletasks()
-        parent = self.winfo_toplevel()
-
-        x = parent.winfo_rootx() + (parent.winfo_width() - modal.winfo_width()) // 2
-        y = parent.winfo_rooty() + (parent.winfo_height() - modal.winfo_height()) // 2
-        modal.geometry(f"+{x}+{y}")
+        entries["amount"].delete(0, tk.END)
+        entries["amount"].insert(0, str(tenant_record["monthly_rent"]))
 
     def save_payment(self, entries, modal):
         """Validate and add a payment record to the table."""
@@ -395,13 +354,6 @@ class PaymentsPage(BasePage):
 
         try:
             save_payment_to_database(payment_data)
-        except DatabaseUnavailable as exc:
-            messagebox.showerror(
-                "Database Unavailable",
-                f"Payment could not be saved because MySQL is unavailable.\n\n{exc}",
-                parent=modal,
-            )
-            return
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",
@@ -419,20 +371,21 @@ class PaymentsPage(BasePage):
 
         self.payment_records = get_payments()
 
-        self.payment_rows = [
-            (
-                row["tenant_name"],
-                f"{row['property_name']} / {row['unit_number']}",
-                f"UGX {float(row['amount']):,.2f}",
-                f"UGX {float(row['balance']):,.2f}",
-                str(row["payment_date"]),
-                row["payment_method"],
-                row["status"],
+        rows = []
+        for row in self.payment_records:
+            rows.append(
+                (
+                    row["tenant_name"],
+                    f"{row['property_name']} / {row['unit_number']}",
+                    f"UGX {float(row['amount']):,.2f}",
+                    f"UGX {float(row['balance']):,.2f}",
+                    str(row["payment_date"]),
+                    row["payment_method"],
+                    row["status"],
+                )
             )
-            for row in self.payment_records
-        ]
 
-        self.payment_table.set_rows(self.payment_rows)
+        self.payment_table.set_rows(rows)
 
     def _parse_money(self, value):
         """Convert a money entry into a float."""
@@ -531,10 +484,13 @@ class PaymentsPage(BasePage):
     def _safe_filename(self, value):
         """Create a simple file-name-safe value."""
 
-        safe_value = "".join(
-            character if character.isalnum() else "_" for character in value.strip()
-        ).strip("_")
-        return safe_value or "tenant"
+        safe_name = ""
+        for character in value.strip():
+            if character.isalnum():
+                safe_name += character
+            else:
+                safe_name += "_"
+        return safe_name.strip("_") or "tenant"
 
     def refresh_page(self):
         """Refresh the payment list when the page is opened or refreshed."""

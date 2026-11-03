@@ -104,8 +104,8 @@ class LoginPage(tk.Frame):
         # Focus puts the typing cursor in the password field when the login page opens.
         self.password_entry.focus_set()
 
-        # Pressing Enter should try to log in, just like clicking the Login button.
-        self.bind_all("<Return>", lambda event: self.check_login())
+        # Tkinter passes an event when Enter is pressed; button clicks pass none.
+        self.bind_all("<Return>", self.check_login)
 
     def _create_label(self, parent, text, row):
         """Create a small label above an input field."""
@@ -142,7 +142,7 @@ class LoginPage(tk.Frame):
         else:
             self.password_entry.config(show="*")
 
-    def check_login(self):
+    def check_login(self, event=None):
         """Check whether the typed username and password are correct."""
 
         # strip() removes accidental spaces before and after the typed text.

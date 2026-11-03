@@ -52,7 +52,7 @@ class BasePage(tk.Frame):
             fg=COLORS["text_light"]
         ).pack(anchor="w", pady=(4, 0))
 
-        self.header_actions=tk.Frame(
+        self.header_actions = tk.Frame(
             self.introduction_frame,
             bg=COLORS["background"]
         )
@@ -138,38 +138,38 @@ class BasePage(tk.Frame):
         direction = -1 if event.delta > 0 else 1
         self.content_canvas.yview_scroll(direction, "units")
 
-    def create_empty_section(self, parent, title, note, row, column=0):
-        """Create an empty area where page UI can be added later."""
+    def center_modal(self, modal):
+        """Center a popup over the main window."""
 
-        section = tk.Frame(
-            parent,
-            bg=COLORS["surface"],
-            highlightbackground=COLORS["border"],
-            highlightthickness=1,
-        )
-        section.grid(row=row, column=column, sticky="nsew", padx=8, pady=8)
-        section.columnconfigure(0, weight=1)
-        section.rowconfigure(1, weight=1)
+        modal.update_idletasks()
+        parent = self.winfo_toplevel()
+        x = parent.winfo_rootx() + (parent.winfo_width() - modal.winfo_width()) // 2
+        y = parent.winfo_rooty() + (parent.winfo_height() - modal.winfo_height()) // 2
+        modal.geometry(f"+{x}+{y}")
+
+    def create_form_label(self, parent, text, row, column):
+        """Place a label beside a form input."""
 
         tk.Label(
-            section,
-            text=title,
+            parent,
+            text=text,
             font=FONTS["button"],
             bg=COLORS["surface"],
             fg=COLORS["text"],
-        ).grid(row=0, column=0, sticky="w", padx=16, pady=(14, 4))
+        ).grid(row=row, column=column, sticky="w", pady=(0, 14))
 
-        tk.Label(
-            section,
-            text=note,
-            font=FONTS["small"],
-            bg=COLORS["surface"],
-            fg=COLORS["text_light"],
-            wraplength=420,
-            justify="left",
-        ).grid(row=1, column=0, sticky="nw", padx=16, pady=(0, 16))
+    def create_form_entry(self, parent):
+        """Create a text input; the page decides where to place it."""
 
-        return section
+        return tk.Entry(
+            parent,
+            font=FONTS["normal"],
+            bg=COLORS["white"],
+            fg=COLORS["text"],
+            relief="solid",
+            borderwidth=1,
+            width=28,
+        )
 
     def create_primary_button(self, parent, text, command):
         """Create a reusable primary button."""
