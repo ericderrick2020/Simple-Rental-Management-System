@@ -6,6 +6,7 @@ from tkinter import filedialog, messagebox, ttk
 from components.simple_table import SimpleTable
 from config.settings import COLORS, FONTS
 from data.database import (
+    update_tenant as update_tenant_in_database,
     add_tenant as save_tenant_to_database,
     delete_tenant as delete_tenant_from_database,
     get_property_options,
@@ -47,6 +48,12 @@ class TenantsPage(BasePage):
         )
         self.add_tenant_button.pack(side="right", padx=(0, 8))
 
+        self.create_secondary_button(
+            self.header_actions,
+            text="Edit Selected",
+            command=self.edit_selected_tenant,
+        ).pack(side="right", padx=(0, 8))
+
         # These names become the column headings in the tenant table.
         columns = (
             "Tenant Name",
@@ -67,12 +74,12 @@ class TenantsPage(BasePage):
 
         self.load_tenant_data()
 
-    def add_tenant(self):
+    def add_tenant(self, record=None):
         """Open a popup form for registering a tenant."""
 
         # A Toplevel window is a popup window that appears above the main app.
         modal = tk.Toplevel(self)
-        modal.title("Add Tenant")
+        modal.title("Edit Tenant" if record is not None else "Add Tenant")
         modal.configure(bg=COLORS["surface"])
         modal.resizable(False, False)
 
@@ -89,7 +96,7 @@ class TenantsPage(BasePage):
 
         tk.Label(
             form_frame,
-            text="Add Tenant",
+            text="Edit Tenant" if record is not None else "Add Tenant",
             font=FONTS["subheading"],
             bg=COLORS["surface"],
             fg=COLORS["text"],
@@ -190,12 +197,27 @@ class TenantsPage(BasePage):
         status_field.grid(row=8, column=1, sticky="ew", padx=(12, 18), pady=(0, 14), ipady=4)
         entries["status"] = status_field
 
+        if record is not None:
+            label = next((label for label, item in self.property_lookup.items()
+                          if item["property_id"] == record["property_id"]), None)
+            if label is None:
+                label = f"{record['property_name']} - {record['location']}"
+                self.property_lookup[label] = record
+                entries["property"].configure(values=list(self.property_lookup))
+            entries["property"].set(label)
+            for field in ("tenant_name", "phone", "email", "unit_number", "lease_start",
+                          "monthly_rent", "emergency_contact", "kyc_image_path", "lc1_letter_path"):
+                entries[field].delete(0, tk.END)
+                entries[field].insert(0, str(record[field]) if record[field] is not None else "")
+            entries["status"].set(record["status"])
+            entries["extra_details"].insert("1.0", record["extra_details"] or "")
+
         button_frame = tk.Frame(form_frame, bg=COLORS["surface"])
         button_frame.grid(row=9, column=0, columnspan=4, sticky="e", pady=(8, 0))
 
         # The buttons call small functions so the form logic stays easy to read.
         def save_form(event=None):
-            self.save_tenant(entries, modal)
+            self.save_tenant(entries, modal, record["tenant_id"] if record is not None else None)
 
         def close_form(event):
             modal.destroy()
@@ -283,7 +305,7 @@ class TenantsPage(BasePage):
         entries["monthly_rent"].delete(0, tk.END)
         entries["monthly_rent"].insert(0, str(monthly_rent))
 
-    def save_tenant(self, entries, modal):
+    def save_tenant(self, entries, modal, record_id=None):
         """Validate and add a tenant to the table."""
 
         # .get() reads the value from a Tkinter input. .strip() removes extra spaces.
@@ -355,7 +377,10 @@ class TenantsPage(BasePage):
         }
 
         try:
-            save_tenant_to_database(tenant_data)
+            if record_id is None:
+                save_tenant_to_database(tenant_data)
+            else:
+                update_tenant_in_database(record_id, tenant_data)
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",
@@ -446,3 +471,16 @@ class TenantsPage(BasePage):
         """Refresh the tenant list when the page is opened or refreshed."""
 
         self.load_tenant_data()
+
+    def edit_selected_tenant(self):
+        """Open the selected record with its existing values."""
+
+        index = self.tenant_table.get_selected_index()
+        if index is None:
+            messagebox.showwarning(
+                "No Tenant Selected",
+                "Please select a tenant in the table before editing.",
+                parent=self,
+            )
+            return
+        self.add_tenant(self.tenant_records[index])

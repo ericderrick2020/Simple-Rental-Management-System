@@ -1,0 +1,1646 @@
+
+=== PAGE 1 ===
+SCHOOL LIBRARY MANAGEMENT
+SYSTEM
+PROJECT REPORT
+BY
+NAMWANJE CABRINE JANE
+YEAR TWO SEMESTER TWO
+UVT373/U/25/M/CSDA/0278
+COURSE NAME: CERTIFICATE IN SOFTWARE 
+DEVELOPMENT WITH AI
+INSTITUTION: SAI PALI INSTITUTE OF
+TECHNOLOGY AND MANAGEMENT
+INSTRUCTOR: AJWADH JALAL
+
+=== PAGE 2 ===
+1
+DECLARATION
+I, Namwanje Cabrine Jane, declare that this project, the School Library Management System,
+and this report are my own work. All sources of information, tools and assistance that I used
+are acknowledged in the report and in the References section. This work has not been submitted
+for any other course or award.
+Signed: ____________________
+Date: ____________________
+
+=== PAGE 3 ===
+2
+ACKNOWLEDGEMENT
+I thank my instructor, Ajwadh Jalal, for the guidance given throughout the three phases of this
+project, and Sai Pali Institute of Technology and Management for the learning environment
+and resources. I acknowledge the official documentation of Python, Tkinter, MySQL and
+Pillow, which I used as learning references.
+
+=== PAGE 4 ===
+3
+ABSTRACT / EXECUTIVE SUMMARY
+Many school libraries still record books, members and loans in notebooks and spreadsheets,
+which leads to misplaced and duplicate records, slow searching and unclear loan tracking. This
+project replaces those manual methods with the School Library Management System, a desktop
+application built with Python, Tkinter and MySQL for use by a school librarian. The
+application provides a secure login, a dashboard with live statistics, and modules for books,
+nested categories, members, borrowing and returns, and reports. Beyond the approved
+proposal, every physical copy of a book is stored as its own record with a unique copy number
+and a status (Available, Borrowed, Damaged, Lost or Withdrawn), and books can carry a shelf
+location and a cover picture. Business rules and validation are enforced in a separate data layer,
+so duplicate ISBNs, duplicate emails, invalid loans and unsafe deletions are rejected with clear
+messages. The design was developed through eight flowcharts and a relational schema of six
+tables. Testing covered 38 planned cases: 28 were run and passed, none failed, and 10 input-
+validation and error cases are still to be run. The result is a working, easy-to-use system that
+meets all seven Phase 1 objectives. Limitations such as the fixed loan period, the absence of
+fines and the lack of report export are recorded for future work.
+
+=== PAGE 5 ===
+4
+TABLE OF CONTENT
+DECLARATION.....................................................................................................................................1
+ACKNOWLEDGEMENT.......................................................................................................................2
+ABSTRACT / EXECUTIVE SUMMARY............................................................................................. 3
+TABLE OF TABLES.............................................................................................................................. 7
+CHAPTER 1 - INTRODUCTION AND PROJECT OVERVIEW.........................................................8
+1.1 PROJECT BACKGROUND / INTRODUCTION........................................................................8
+1.2 PROBLEM STATEMENT............................................................................................................8
+1.3 PROJECT AIM AND OBJECTIVES............................................................................................8
+1.4 PROJECT SCOPE......................................................................................................................... 9
+1.5 INTENDED USERS AND BENEFITS...................................................................................... 10
+1.6 REPORT STRUCTURE..............................................................................................................10
+CHAPTER 2 - SYSTEM ANALYSIS AND DESIGN.........................................................................11
+2.1 FUNCTIONAL REQUIREMENTS............................................................................................11
+2.2 SYSTEM ARCHITECTURE...................................................................................................... 12
+2.3 FLOWCHARTS.......................................................................................................................... 14
+2.4 DATA STRUCTURE / DATABASE DESIGN..........................................................................21
+2.5 USER INTERFACE / MENU DESIGN......................................................................................24
+2.6 DESIGN CHANGES...................................................................................................................24
+CHAPTER 3 - SYSTEM IMPLEMENTATION.................................................................................. 26
+3.1 DEVELOPMENT ENVIRONMENT AND TOOLS..................................................................26
+3.2 PROJECT FOLDER AND FILE STRUCTURE.........................................................................26
+3.3 IMPLEMENTED MODULES AND FUNCTIONS................................................................... 27
+3.4 IMPLEMENTATION OF MAJOR FEATURES........................................................................28
+3.4.1 Login.................................................................................................................................... 28
+3.4.2 Books: add, edit, delete and search................................................................................... 28
+3.4.3 Categories............................................................................................................................ 28
+3.4.4 Copies and status................................................................................................................ 29
+3.4.5 Members.............................................................................................................................. 29
+3.4.6 Issuing a book......................................................................................................................29
+3.4.7 Returning a book................................................................................................................ 29
+3.4.8 Dashboard and reports.......................................................................................................30
+3.5 INPUT VALIDATION AND ERROR HANDLING..................................................................30
+3.6 DATA STORAGE AND RETRIEVAL......................................................................................31
+3.7 SCREENSHOTS OF THE COMPLETED APPLICATION...................................................... 31
+CHAPTER 4 - TESTING AND RESULTS.......................................................................................... 33
+4.1 TESTING APPROACH.............................................................................................................. 33
+4.2 TEST CASES AND ACTUAL RESULTS................................................................................. 33
+4.3 TESTING SUMMARY............................................................................................................... 35
+
+=== PAGE 6 ===
+5
+4.4 PROBLEMS ENCOUNTERED AND SOLUTIONS.................................................................35
+4.5 EVALUATION AGAINST OBJECTIVES AND REQUIREMENTS.......................................36
+CHAPTER 5 - USER GUIDE AND PROJECT COMPLETION.........................................................37
+5.1 SYSTEM REQUIREMENTS......................................................................................................37
+5.2 INSTALLATION / SETUP INSTRUCTIONS........................................................................... 37
+5.3 HOW TO USE THE APPLICATION.........................................................................................37
+5.4 KNOWN LIMITATIONS........................................................................................................... 37
+5.5 RECOMMENDATIONS FOR FUTURE IMPROVEMENT..................................................... 38
+CHAPTER 6 - CONCLUSION............................................................................................................. 39
+6.1 PROJECT SUMMARY...............................................................................................................39
+6.2 ACHIEVEMENT OF OBJECTIVES..........................................................................................39
+6.3 LESSONS LEARNT................................................................................................................... 39
+6.4 REMARKS.................................................................................................................................. 39
+REFERENCES...................................................................................................................................... 40
+APPENDICES....................................................................................................................................... 41
+APPENDIX A - ADDITIONAL SCREENSHOTS AND OUTPUT SAMPLES............................. 41
+APPENDIX B - DATABASE STRUCTURE (schema.sql)..............................................................41
+
+=== PAGE 7 ===
+6
+TABLE OF FIGURES
+Figure 1 system architecture..................................................................................................................12
+Figure 2 Login flowchart....................................................................................................................... 14
+Figure 3 Add Book flowchart................................................................................................................ 15
+Figure 4 Update Book flowchart........................................................................................................... 16
+Figure 5 Delete Book flowchart.............................................................................................................17
+Figure 6 Search / View Books flowchart...............................................................................................18
+Figure 7 Issue Book flowchart...............................................................................................................19
+Figure 8 Return Book flowchart............................................................................................................ 20
+Figure 9 Exit / Log Out flowchart......................................................................................................... 21
+Figure 10 system architecture................................................................................................................24
+Figure 11 Home dashboard....................................................................................................................31
+Figure 12 Book catalogue screen...........................................................................................................31
+Figure 13 Borrowing and returning screen............................................................................................32
+Figure 14 Reports screen....................................................................................................................... 32
+
+=== PAGE 8 ===
+7
+TABLE OF TABLES
+Table 1 Objectives and achievement status............................................................................... 8
+Table 2 Scope: planned versus...................................................................................................9
+Table 3 Functional requirements and status.............................................................................11
+Table 4 Modules and files........................................................................................................ 13
+Table 5 Database tables and fields........................................................................................... 21
+Table 6 Design changes after Phase 2......................................................................................24
+Table 7 Development tools...................................................................................................... 26
+Table 8 Main functions............................................................................................................ 27
+Table 9 Test cases and actual results........................................................................................34
+Table 10 Testing summary.......................................................................................................36
+Table 11 Problems and solutions............................................................................................. 36
+Table 12 Evaluation against objectives....................................................................................37
+
+=== PAGE 9 ===
+8
+CHAPTER 1 - INTRODUCTION AND PROJECT OVERVIEW
+1.1 PROJECT BACKGROUND / INTRODUCTION
+Libraries support teaching, learning and research by giving students and teachers access to
+educational materials. Many schools, however, still manage their libraries with notebooks,
+record books or spreadsheets. These methods work for small collections, but as books and users
+increase, searching, updating records and tracking borrowed materials becomes slow and error-
+prone.
+The School Library Management System is a desktop application developed in Python. It lets a
+librarian register books, keep track of every physical copy, manage students and staff as library
+members, issue and return books, and view reports. Data is stored in a MySQL database, so it
+remains available after the program is closed. The application is intended for school librarians,
+and it benefits students and staff through faster, more accurate service.
+This report connects the finished application to the proposal approved in Phase 1 and the design
+completed in Phase 2.
+1.2 PROBLEM STATEMENT
+Many school libraries still use manual methods to manage books, members and borrowing
+records. This often leads to misplaced records, duplicate entries, inaccurate information and
+difficulty tracking borrowed books. It also makes searching for books and preparing reports
+slow and inefficient. Therefore, a computerized School Library Management System is needed
+to automate library operations, improve record accuracy and provide faster access to
+information.
+The problem addressed is unchanged from Phase 1.
+1.3 PROJECT AIM AND OBJECTIVES
+Aim: To develop a desktop School Library Management System in Python that automates the
+management of books, library members and borrowing activities in a school library.
+Table 1 Objectives and achievement status.
+Objective from Phase 1 Achievement
+status
+Evidence / explanation
+1. Develop a School Library
+Management System using Python
+that improves the management of
+books, members and borrowing
+Achieved Complete working application
+(Chapter 3); tests T01-T28 (Chapter
+4)
+2. Allow librarians to add, edit, view
+and delete book records
+Achieved Books screen and book form (Section
+3.4.2); tests T01-T03, T21-T23
+
+=== PAGE 10 ===
+9
+3. Develop a member management
+module for registering and
+maintaining library users
+Achieved Members screen (Section 3.4.5); test
+T26. Duplicate-email and
+deactivation tests are pending (T32,
+T33)
+4. Implement book borrowing and
+return functionalities
+Achieved Borrow / Return screen (Sections
+3.4.6, 3.4.7); tests T10-T17
+5. Store and retrieve information
+using MySQL
+Achieved Schema in Section 2.4 and Appendix
+D; all tests ran against the database
+6. Generate reports that assist
+librarians in monitoring library
+activities
+Achieved Home dashboard and Reports screen
+(Section 3.4.8); test T25. Reports are
+on screen only and cannot be
+exported
+7. Apply validation and error
+handling to improve reliability and
+usability
+Achieved (UI-
+level checks
+partly pending)
+Data-layer rules tested in T02, T05,
+T06, T09, T11-T14, T16, T18, T22.
+Form-level checks are pending (T29-
+T31, T38)
+1.4 PROJECT SCOPE
+Table 2 Scope: planned versus final
+Scope
+item
+Original plan Final outcome / explanation
+In
+scope
+Register books (title, author, category,
+year, ISBN); update, view and delete
+books
+Implemented. Books also have a shelf
+location, a cover picture and a nested
+category
+In
+scope
+Member registration and management for
+students and staff
+Implemented. Removing a member is done
+by deactivating, so history is kept
+In
+scope
+Borrowing and return tracking Implemented at copy level: a specific copy
+is issued and returned
+In
+scope
+Search by title, author, category or ISBN Implemented, and extended to shelf
+location and copy number
+In
+scope
+Basic reports on available books,
+borrowed books and members
+Implemented as on-screen reports plus a
+copy-status report
+In
+scope
+Login, validation and error handling Implemented
+In
+scope
+MySQL storage Implemented. The Phase 1 scope text also
+mentioned SQLite once, but the objectives,
+feature list and technology stack all said
+MySQL, so MySQL (XAMPP) was used
+In
+scope
+Simple graphical interface using Tkinter Implemented (stated as "may include" in
+Phase 1)
+
+=== PAGE 11 ===
+10
+Out of
+scope
+Web access, mobile app, cloud
+integration, multi-branch support, online
+reservations, AI recommendations,
+advanced security
+Confirmed excluded. Only basic SHA-256
+password hashing and a single login are
+included
+1.5 INTENDED USERS AND BENEFITS
+Librarians are the direct users. They gain one searchable catalogue, automatic availability
+counts, quick loan and return processing, overdue highlighting and ready-made reports.
+Students and staff benefit indirectly through faster service and fewer record errors. School
+administrators benefit from accurate statistics about stock and usage.
+1.6 REPORT STRUCTURE
+Chapter 1 introduces the project, objectives and scope. Chapter 2 presents the requirements
+and design. Chapter 3 explains the implementation. Chapter 4 reports testing and evaluation.
+Chapter 5 is a user guide with limitations and future improvements. Chapter 6 concludes the
+report. References and appendices follow.
+
+=== PAGE 12 ===
+11
+CHAPTER 2 - SYSTEM ANALYSIS AND DESIGN
+2.1 FUNCTIONAL REQUIREMENTS
+Table 3 Functional requirements and status
+ID Functional requirement Status Where demonstrated
+FR01 The system shall allow
+authorized users to log in
+securely
+Implemented Login window (main.py, auth.py);
+T24
+FR02 The system shall restrict access
+to unauthorized users
+Implemented Dashboard opens only after
+verify_login succeeds; T29 pending
+FR03 The system shall allow users to
+add new books
+Implemented Books screen > Add Book; T01
+FR04 The system shall allow users to
+update book information
+Implemented Books screen > Edit Selected; T21
+FR05 The system shall allow users to
+delete book records
+Implemented Books screen > Delete Selected;
+T23
+FR06 The system shall display all
+available books
+Implemented Books screen (available / total
+column) and Reports > Available
+Books
+FR07 The system shall search books
+using various criteria
+Implemented Search bar on Books screen; T20,
+T36 pending
+FR08 The system shall register new
+library members
+Implemented Members screen > Register
+Member; T26
+FR09 The system shall update
+member information
+Implemented Members screen > Edit Selected
+FR10 The system shall display
+member records
+Implemented Members screen; Reports >
+Registered Members
+FR11 The system shall remove
+inactive members when
+required
+Implemented
+(as
+deactivation)
+Members screen > Deactivate
+Selected; T33 pending
+FR12 The system shall issue books to
+registered members
+Implemented Borrow / Return screen; T10
+FR13 The system shall record
+returned books
+Implemented Mark as Returned; T15
+FR14 The system shall update book
+availability automatically
+Implemented Copy status changes on issue and
+return; T10, T15
+FR15 The system shall maintain
+borrowing history records
+Implemented Reports > Borrowing History
+FR16 The system shall generate
+reports on available books
+Implemented Reports > Available Books
+
+=== PAGE 13 ===
+12
+FR17 The system shall generate
+reports on borrowed books
+Implemented Borrow / Return screen (current
+loans) and Borrowing History status
+column
+FR18 The system shall generate
+reports on registered members
+Implemented Reports > Registered Members
+FR19 The system shall display library
+statistics
+Implemented Home dashboard and Reports
+statistic cards; T25
+FR20 The system shall validate user
+inputs before saving
+Implemented Book, member and category forms;
+T30, T31 pending
+FR21 The system shall prevent
+duplicate records
+Implemented Unique ISBN, email and copy
+number; T02, T05
+FR22 The system shall display error
+messages when invalid data is
+entered
+Implemented Message boxes on every screen;
+T29-T35 pending
+2.2 SYSTEM ARCHITECTURE
+Figure 1 system architecture
+How the layers work together: the user clicks in a screen (ui/). The screen checks simple
+things such as empty fields and numbers, then calls a function in models/. The model applies
+the business rules (for example, an ISBN must be unique, or a borrowed copy cannot be
+deleted), runs the SQL through db.py and returns a result or raises a ValueError with a readable
+message. The screen shows that message in a dialog. Screens never talk to the database directly.
+
+=== PAGE 14 ===
+13
+Table 4 Modules and files
+Module / File Responsibility Main interactions
+main.py Login window; starts the
+application
+Calls auth.py,
+models/categories.py (seed),
+ui/dashboard.py
+config.py MySQL connection settings Read by db.py
+db.py Shared database connection with
+execute, fetch_all, fetch_one
+Used by all models and auth.py
+auth.py Password hashing, login check,
+default admin creation
+Uses db.py
+covers.py Saves and removes cover image
+files in covers/
+Used by models/books.py and the
+book form
+models/books.py Book titles: add, update, delete,
+search, counts
+Uses db.py, copies.py,
+categories.py, covers.py
+models/categories.py Parent / child categories and
+category paths
+Uses db.py
+models/copies.py Individual copies: numbers,
+status, add, remove
+Uses db.py
+models/members.py Register, update, deactivate,
+search members
+Uses db.py
+models/borrowing.py Issue a copy, process a return,
+loan lists
+Uses db.py
+models/reports.py Statistics for the dashboard and
+reports
+Uses db.py
+ui/dashboard.py Main window, sidebar, switches
+screens
+Creates all views
+ui/home_view.py Landing dashboard Uses reports and borrowing
+models
+ui/books_view.py Book table, search, cover panel,
+book form
+Uses books, categories models
+ui/copies_dialog.py Manage the copies of one book Uses copies model
+ui/categories_view.py Category tree screen Uses categories model
+ui/members_view.py Member table and form Uses members model
+ui/borrow_view.py Issue form and current loans Uses books, copies, members,
+borrowing models
+ui/reports_view.py Statistics cards and report tabs Uses reports, books, members,
+copies, borrowing models
+ui/style.py,
+ui/images.py
+Shared look; cover image loading Used by all screens
+MySQL
+school_library_db
+Stores all records Read and written through db.py
+
+=== PAGE 15 ===
+14
+2.3 FLOWCHARTS
+Figure 2 Login flowchart
+Function: authenticates the librarian.
+Flow: Start > enter username and password > credentials valid? No: show "Incorrect username
+or password" and stay on login. Yes: open dashboard > End.
+Difference from Phase 2: none. Empty fields are also rejected before the check.
+
+=== PAGE 16 ===
+15
+Figure 3 Add Book flowchart
+Function: registers a new book title and its copies.
+Flow: Start > enter title, author, category, year, ISBN, shelf, number of copies, optional cover
+> required fields and numbers valid? No: show warning. Yes: ISBN already exists? Yes: show
+duplicate error. No: save the cover file, insert the book, create the copies > refresh list > End.
+Difference from Phase 2: added category choice, shelf location, cover picture, and automatic
+creation of numbered copies.
+
+=== PAGE 17 ===
+16
+Figure 4 Update Book flowchart
+Function: edits the details of an existing book.
+Flow: Start > select book, open edit form > edit details > inputs valid? No: show warning.
+Yes: another book uses this ISBN? Yes: show error. No: update the record, replace or remove
+the cover > End.
+Difference from Phase 2: the copy-count check moved. Copies are now added or removed in
+the Manage Copies window, so the form no longer edits total copies.
+
+=== PAGE 18 ===
+17
+Figure 5 Delete Book flowchart
+Function: removes a book and its copies.
+Flow: Start > select book > confirm? No: cancel. Yes: any copy on loan? Yes: show error. No:
+any borrowing history? Yes: show "mark copies as Withdrawn instead". No: delete book
+(copies are deleted with it), delete cover file > End.
+Difference from Phase 2: added the borrowing-history check, because deleting a book with
+history would break the loan records.
+
+=== PAGE 19 ===
+18
+Figure 6 Search / View Books flowchart
+Function: finds books by keyword.
+Flow: Start > enter keyword > match title, author, ISBN, shelf, category path or copy number
+> matches found? No: empty table. Yes: show results > End.
+Difference from Phase 2: search now also covers shelf, nested category and copy number.
+
+=== PAGE 20 ===
+19
+Figure 7 Issue Book flowchart
+Function: lends one specific copy to a member.
+Flow: Start > select member and a copy (choose book then copy number, or type the copy
+number) > copy status is Available? No: show "Copy ... is '<status>' and cannot be issued".
+Yes: member is Active? No: show error. Yes: create loan with a 14-day due date, set copy to
+Borrowed > show due date > End.
+Difference from Phase 2: the loan is for a copy, not a title, and the check is on copy status
+instead of an available-copies number.
+
+=== PAGE 21 ===
+20
+Figure 8 Return Book flowchart
+Function: processes a returned copy.
+Flow: Start > select active loan > already returned? Yes: show error. No: ask whether the copy
+is in good condition > set return date and mark loan Returned > set copy to Available (good)
+or Damaged (not good) > End.
+Difference from Phase 2: the librarian records the condition of the returned copy.
+
+=== PAGE 22 ===
+21
+Figure 9 Exit / Log Out flowchart
+Function: ends the session.
+Flow: Start > click Log Out > confirm? No: stay on dashboard. Yes: close dashboard, show
+login window > End.
+Difference from Phase 2: none.
+2.4 DATA STRUCTURE / DATABASE DESIGN
+The final storage method is a MySQL database named school_library_db, running on XAMPP.
+It has six tables. Data stays saved when the application is closed. Cover pictures are stored as
+files in the covers/ folder, and only their relative path is saved in the database.
+Relationships: one category has many books (and categories can contain sub-categories
+through parent_id); one book has many copies; one copy has many loan records over time; one
+member has many loan records.
+Table 5 Database tables and fields
+Table Field Data type Constraint /
+purpose
+Example value
+users id INT
+AUTO_INCREMENT
+Primary key 1
+users username VARCHAR(50) Unique,
+required
+admin
+
+=== PAGE 23 ===
+22
+users password_hash VARCHAR(64) Required;
+SHA-256
+hash
+240be518fabd...
+users full_name VARCHAR(100) Display
+name
+Library
+Administrator
+users created_at TIMESTAMP Defaults to
+current time
+2026-11-02
+09:00:00
+categories id INT
+AUTO_INCREMENT
+Primary key 8
+categories name VARCHAR(100) Required Physics
+categories parent_id INT Optional
+link to
+parent
+category;
+empty = top
+level
+3
+books id INT
+AUTO_INCREMENT
+Primary key 1
+books title VARCHAR(200) Required Physics 101
+books author VARCHAR(150) Required A. Newton
+books category_id INT Link to
+categories;
+empty if
+none
+8
+books publication_year INT Optional 2020
+books isbn VARCHAR(20) Unique,
+required
+9780000000001
+books shelf_location VARCHAR(50) Optional
+shelf code
+A-3
+books cover_image VARCHAR(255) Optional
+relative file
+path
+covers/3f9a....jpg
+books created_at TIMESTAMP Defaults to
+current time
+2026-11-02
+09:10:00
+book_copies id INT
+AUTO_INCREMENT
+Primary key 1
+book_copies book_id INT Required
+link to
+books;
+copies
+deleted with
+the book
+1
+
+=== PAGE 24 ===
+23
+book_copies copy_number VARCHAR(30) Unique,
+required;
+format
+B0001-C01
+B0001-C01
+book_copies status ENUM Available,
+Borrowed,
+Damaged,
+Lost,
+Withdrawn
+Available
+book_copies notes VARCHAR(200) Optional
+note
+Spine repaired
+book_copies acquired_on DATE Date the
+copy was
+added
+2026-11-02
+members id INT
+AUTO_INCREMENT
+Primary key 1
+members full_name VARCHAR(150) Required Jane Nakato
+members member_type ENUM Student or
+Staff
+Student
+members contact VARCHAR(50) Optional 0770000000
+members email VARCHAR(100) Unique,
+optional
+jane@example.com
+members status ENUM Active or
+Inactive
+Active
+members registered_on TIMESTAMP Defaults to
+current time
+2026-11-02
+09:20:00
+borrow_records id INT
+AUTO_INCREMENT
+Primary key 1
+borrow_records copy_id INT Required
+link to
+book_copies
+1
+borrow_records member_id INT Required
+link to
+members
+1
+borrow_records borrow_date DATE Required 2026-11-02
+borrow_records due_date DATE Required;
+14 days after
+borrowing
+2026-11-16
+borrow_records return_date DATE Empty until
+returned
+NULL
+borrow_records status ENUM Borrowed or
+Returned
+Borrowed
+
+=== PAGE 25 ===
+24
+2.5 USER INTERFACE / MENU DESIGN
+The application is a graphical desktop program. The Login window is a single card with
+username and password fields. After login, the Dashboard has a dark sidebar on the left with
+Home, Books, Categories, Members, Borrow / Return, Reports and Log Out, and a content
+area on the right that changes with the selected item.
+Figure 10  system architecture
+Home: greeting, five statistic cards, four quick-action buttons and the 15 most recent
+borrowing records (overdue in red, returned in grey).
+Books: search bar, book table, cover and details panel, and buttons Manage Copies, Edit
+Selected, Delete Selected, plus Add Book.
+Categories: tree of parent and child categories with buttons to add, rename and delete.
+Members: search bar, member table, and Register, Edit and Deactivate actions.
+Borrow / Return: Book, Copy Number and Member selectors (or a typed copy number), an
+Issue Book button, and a table of current loans with Mark as Returned.
+Reports: six statistic cards and four tabs: Available Books, Registered Members, All Copies
+and Status, Borrowing History.
+2.6 DESIGN CHANGES
+Table 6 Design changes after Phase 2
+Original Phase 2 design implementation Reason for change
+
+=== PAGE 26 ===
+25
+Category stored as plain
+text on each book
+Separate categories table with
+parent and child levels
+Consistent categories and sub-
+categories such as Science >
+Physics
+books table held
+total_copies and
+available_copies numbers
+Separate book_copies table, one
+row per physical copy with its
+own copy number
+Needed to tell copies of the
+same title apart and to track
+each one
+Copy availability only a
+count
+Status per copy: Available,
+Borrowed, Damaged, Lost,
+Withdrawn
+Needed to record damaged, lost
+or retired copies
+Loan linked to a book
+(book_id)
+Loan linked to a specific copy
+(copy_id)
+The librarian issues and
+receives a particular physical
+copy
+Issue form: choose book
+and member
+Choose book, then copy number
+(or type it), then member
+Copy number identifies exactly
+which item leaves the library
+Book form edited total
+copies
+Copies managed in a Manage
+Copies window
+Copy-level records replaced a
+single total
+No shelf or cover fields shelf_location and cover_image
+added to books
+Better organization and easier
+recognition of books
+Return only marked a
+loan returned
+Return asks if the copy is in good
+condition
+Damaged copies must not be re-
+issued
+Menu began at the Books
+screen
+Home dashboard added as
+landing screen
+Quick overview of statistics and
+recent activity
+Delete book checked
+active loans only
+Also checks borrowing history Prevents broken loan records
+Phase 1 scope text
+mentioned SQLite
+MySQL used throughout MySQL was the stated
+objective and technology
+
+=== PAGE 27 ===
+26
+CHAPTER 3 - SYSTEM IMPLEMENTATION
+3.1 DEVELOPMENT ENVIRONMENT AND TOOLS
+Table 7 Development tools
+Item Actual tool / version Purpose
+Programming
+language
+Python Application development
+IDE / editor Visual Studio Code Writing and running code
+GUI library Tkinter (ships with Python) Windows, forms, tables and dialogs
+Database
+library
+mysql-connector-python Connects Python to MySQL
+Image library Pillow Shows book cover pictures
+Standard
+library
+hashlib, datetime, os, shutil, uuid Password hashing, dates and loan
+periods, cover file handling
+Storage MySQL on XAMPP managed with
+phpMyAdmin
+Persistent data storage
+Design tools Python (matplotlib) for diagrams; Word
+for documents
+Flowcharts, mock-ups and reports
+3.2 PROJECT FOLDER AND FILE STRUCTURE
+SchoolLibrarySystem/
+    main.py                 Entry point: login window
+    config.py               MySQL connection settings
+    db.py                   Shared database connection
+    auth.py                 Login, password hashing, default admin
+    covers.py               Saves and deletes cover image files
+    schema.sql              Database schema (run once in phpMyAdmin)
+    requirements.txt        Python packages needed
+    README.md               Setup notes
+    covers/                 Stored cover pictures
+    models/
+        books.py            Book titles
+        categories.py       Parent / child categories
+        copies.py           Individual copies and status
+        members.py          Library members
+        borrowing.py        Issue and return
+        reports.py          Statistics
+    ui/
+        style.py            Colours, fonts, widget helpers
+        images.py           Cover image loader
+        dashboard.py        Main window and sidebar
+
+=== PAGE 28 ===
+27
+        home_view.py        Home dashboard
+        books_view.py       Books screen and book form
+        copies_dialog.py    Manage copies window
+        categories_view.py  Categories screen
+        members_view.py     Members screen and form
+        borrow_view.py      Borrow / Return screen
+        reports_view.py     Reports screen
+3.3 IMPLEMENTED MODULES AND FUNCTIONS
+Table 8 Main functions
+Function / module Purpose Input / parameters Output / result
+verify_login (auth.py) Check a
+librarian's
+login
+username, password User record, or None if
+wrong
+ensure_default_admin
+(auth.py)
+Create the
+first account
+none Account admin /
+admin123 on first run
+add_book
+(models/books.py)
+Register a
+book and its
+copies
+title, author, category_id,
+year, isbn, shelf, cover
+path, number of copies
+New book id; error if
+ISBN exists
+update_book
+(models/books.py)
+Edit book
+details
+book_id and the same
+fields
+Record updated; old cover
+removed if replaced
+delete_book
+(models/books.py)
+Remove a
+book
+book_id Book deleted, or error if
+on loan or has history
+search_books
+(models/books.py)
+Find books keyword List of matching books
+add_copies
+(models/copies.py)
+Create
+numbered
+copies
+book_id, count New copy numbers such
+as B0001-C04
+set_status
+(models/copies.py)
+Change a
+copy's status
+copy_id, status, note Updated status; blocked if
+copy is on loan
+remove_copy
+(models/copies.py)
+Delete one
+copy
+copy_id Deleted, or advice to mark
+Withdrawn
+add_category
+(models/categories.py)
+Add a
+category or
+sub-category
+name, parent_id New id; error if duplicate
+at that level
+delete_category
+(models/categories.py)
+Delete a
+category
+category_id Deleted, or error if it has
+sub-categories or books
+add_member
+(models/members.py)
+Register a
+member
+name, type, contact,
+email
+Member saved; error if
+email exists
+remove_member
+(models/members.py)
+Deactivate a
+member
+member_id Status Inactive; blocked if
+loans are open
+
+=== PAGE 29 ===
+28
+issue_book
+(models/borrowing.py)
+Lend a copy copy_id, member_id Due date; copy becomes
+Borrowed
+return_book
+(models/borrowing.py)
+Receive a
+copy
+record_id, Available or
+Damaged
+Loan Returned; copy
+status updated
+get_active_loans /
+get_borrow_history
+List current
+loans / all
+loans
+none Rows with copy number,
+book, member, dates
+get_library_statistics
+(models/reports.py)
+Numbers for
+dashboard
+none Titles, copies, available,
+members, loans, overdue
+save_cover /
+remove_cover
+(covers.py)
+Store or
+delete a cover
+file
+file path Relative path such as
+covers/3f9a....jpg
+3.4 IMPLEMENTATION OF MAJOR FEATURES
+3.4.1 Login
+User action: types username and password and presses Log In.
+Processing: both fields must be filled. verify_login hashes the password with SHA-256 and
+compares it with the stored hash.
+Data: reads the users table. On first run the default admin account and a starter category tree
+are created.
+Result: the dashboard opens, or "Incorrect username or password." is shown.
+3.4.2 Books: add, edit, delete and search
+User action: clicks Add Book and fills the form (title, author, category, year, ISBN, shelf,
+number of copies, optional cover). Edit and Delete work on the selected row. The search bar
+accepts any keyword.
+Processing: required fields and numbers are checked in the form. add_book rejects a duplicate
+ISBN, inserts the book, then creates the requested number of copies. update_book rejects an
+ISBN used by another book and replaces the cover file if a new one is chosen. delete_book
+refuses if any copy is on loan or if the book has borrowing history. search_books matches title,
+author, ISBN, shelf, category path (so a parent category also finds its children's books) and
+copy number.
+Data: books and book_copies tables; cover files in covers/.
+Result: the table refreshes. The side panel shows the cover and details of the selected book,
+including copies available out of total.
+3.4.3 Categories
+User action: on the Categories screen adds a top-level category, adds a sub-category under the
+selected one, renames or deletes.
+
+=== PAGE 30 ===
+29
+Processing: names cannot be empty or repeated at the same level. A category with sub-
+categories or books cannot be deleted.
+Data: categories table, using parent_id for nesting. Books display the full path, for example
+Science > Physics.
+Result: the tree refreshes and shows how many books are directly in each category.
+3.4.4 Copies and status
+User action: selects a book and clicks Manage Copies. Can add copies, set the selected copy
+to Available, Damaged, Lost or Withdrawn (with a note), or remove a copy.
+Processing: copy numbers are generated as B + book id + -C + sequence, for example
+B0001-C03. A borrowed copy cannot be changed or removed. A copy with borrowing history
+cannot be deleted; it should be marked Withdrawn.
+Data: book_copies table.
+Result: the list shows each copy's number, status, borrower, due date and notes, colour-coded
+by status.
+3.4.5 Members
+User action: registers or edits a student or staff member, and deactivates members who leave.
+Processing: name and type are required; an email, if given, must contain "@" and be unique.
+Deactivation is blocked while the member has borrowed books.
+Data: members table. Deactivated members stay in the database so history is kept.
+Result: the table refreshes. Inactive members no longer appear in the issue list.
+3.4.6 Issuing a book
+User action: on Borrow / Return chooses a book, then one of its available copy numbers, then
+a member. Alternatively types or scans a copy number.
+Processing: issue_book checks the copy is Available and the member is Active, creates a loan
+with a due date 14 days away, and sets the copy to Borrowed.
+Data: borrow_records and book_copies tables.
+Result: a message shows the due date; the loan appears in the Currently Borrowed table.
+3.4.7 Returning a book
+User action: selects a loan, clicks Mark as Returned and answers whether the copy is in good
+condition.
+Processing: return_book sets the return date and marks the loan Returned. The copy becomes
+Available (good) or Damaged (not good). Overdue loans are shown in red before return.
+Data: borrow_records and book_copies tables.
+Result: the loan leaves the current list and stays in the history.
+
+=== PAGE 31 ===
+30
+3.4.8 Dashboard and reports
+User action: opens Home or Reports.
+Processing: get_library_statistics counts titles, copies (excluding Withdrawn), available
+copies, active members, loans and overdue loans. Report tabs list available books, members,
+every copy with status, and the full borrowing history.
+Result: live figures and tables. Reports are shown on screen and cannot be exported in this
+version.
+3.5 INPUT VALIDATION AND ERROR HANDLING
+Validation is done at two levels: forms check simple input, and the models enforce business
+rules and raise a ValueError with a readable message, which the screen shows in a dialog.
+Actual messages from the program:
+• Empty login: "Please enter both username and password."
+• Wrong login: "Incorrect username or password."
+• Missing book details: "Title, Author and ISBN are required."
+• Wrong data type: "Publication year must be a number." and "Number of copies must be
+1 or more."
+• Duplicate ISBN: "A book with ISBN '...' already exists." (when editing: "Another book
+already uses ISBN '...'.")
+• Duplicate member email: "A member with email '...' is already registered."
+• Invalid email: "Please enter a valid email address."
+• Duplicate category: "'...' already exists in that category."
+• Deleting a category in use: "This category has subcategories. Delete or move them first."
+or "n book(s) use this category. Reassign them first."
+• Deleting a book on loan: "Cannot delete a book that currently has copies on loan."
+• Deleting a book with history: "This book has borrowing history, so it can't be deleted.
+Mark its copies as 'Withdrawn' instead."
+• Issuing an unavailable copy: "Copy B0001-C01 is 'Borrowed' and cannot be issued."
+• Issuing to an inactive member: "This member is not active and cannot borrow books."
+• Returning twice: "This book has already been returned."
+• Deactivating a member with loans: "Cannot remove a member who still has borrowed
+books."
+• Bad cover file: "Cover must be a PNG, JPG, GIF or WEBP image." and "Cover image
+must be smaller than 5 MB."
+• Typed copy number not found: "No copy numbered '...'."
+• Records not found: "Book not found." / "Member not found." / "Copy not found."
+• MySQL not running: a "Database Connection Error" window tells the user to start
+MySQL in XAMPP and run schema.sql.
+
+=== PAGE 32 ===
+31
+Empty search results simply show an empty table.
+3.6 DATA STORAGE AND RETRIEVAL
+All records are saved in MySQL the moment an action is confirmed (each change is
+committed). When the program is closed and reopened, the screens read the same tables again,
+so books, copies, members and loans are still there. Cover pictures are copied into the covers/
+folder with a random file name, and the database keeps only that path. Deleting or replacing a
+cover removes the old file. Loan history is never deleted: members are deactivated instead of
+removed, and copies with history are marked Withdrawn instead of deleted.
+3.7 SCREENSHOTS OF THE COMPLETED APPLICATION
+Figure 11 Home dashboard.
+Figure 12 Book catalogue screen.
+
+
+=== PAGE 33 ===
+32
+Figure 13 Borrowing and returning screen.
+Figure 14 Reports screen.
+
+
+=== PAGE 34 ===
+33
+CHAPTER 4 - TESTING AND RESULTS
+4.1 TESTING APPROACH
+Testing started from the Phase 2 test plan, which was extended when copies, categories and
+covers were added. Two kinds of testing were done. First, scripted tests called the model
+functions directly against a real MySQL-compatible database, covering normal inputs, invalid
+inputs and edge cases such as borrowed copies, damaged copies and records with history.
+Second, a smoke test opened every screen and dialog to confirm they load without errors. Tests
+that need someone to type into forms (empty fields, wrong password and similar) are listed as
+Pending because they were not run yet.
+Important: the "Actual result" column below records what was observed in those runs. Re-
+run each test on your own computer with XAMPP, and update the results, before submitting.
+4.2 TEST CASES AND ACTUAL RESULTS
+Table 9 Test cases and actual results
+ID Function /
+feature
+Test input / condition Expected
+result
+Actual result Pass /
+Fail
+T01 Add book Valid details, 3 copies Book saved
+with 3
+numbered
+copies
+Saved; copies B0001-
+C01 to C03 created, 3
+available
+Pass
+T02 Add book ISBN already in
+database
+Duplicate
+error
+Rejected with "A book
+with ISBN ... already
+exists."
+Pass
+T03 Add
+copies
+Add 2 copies to a book
+with 3
+Numbering
+continues
+New copies numbered
+C04 and C05
+Pass
+T04 Categories Start-up seeding run
+twice
+Starter tree
+created once
+No duplicates; Science
+> Physics present
+Pass
+T05 Categories Add a name that exists
+under the same parent
+Duplicate
+error
+Rejected Pass
+T06 Categories Delete a category that
+has sub-categories
+Error Rejected Pass
+T07 Categories Add a third-level
+category
+Full path
+shown
+Path Science > Physics
+> Quantum
+Pass
+T08 Cover Save a valid PNG File stored
+in covers/
+File created and path
+returned
+Pass
+T09 Cover Save a file that is not an
+image
+Rejected Rejected with image-
+type message
+Pass
+
+=== PAGE 35 ===
+34
+T10 Issue book Available copy, active
+member
+Loan
+created,
+copy
+Borrowed
+Loan created with due
+date; copy Borrowed;
+available count fell by 1
+Pass
+T11 Issue book Issue the same copy
+again
+Error Rejected Pass
+T12 Copy
+status
+Change status of a
+borrowed copy
+Error Rejected Pass
+T13 Copy
+removal
+Remove a borrowed
+copy
+Error Rejected Pass
+T14 Delete
+book
+Book with a copy on
+loan
+Error Rejected Pass
+T15 Return
+book
+Return marked
+Damaged
+Loan
+Returned,
+copy
+Damaged
+Loan closed; copy
+status Damaged
+Pass
+T16 Issue book Issue the damaged copy Error Rejected Pass
+T17 Copy
+status
+Set back to Available
+with a note
+Status
+updated
+Updated Pass
+T18 Copy
+removal
+Remove a copy that has
+history
+Error
+advising
+Withdrawn
+Rejected Pass
+T19 Copy
+removal
+Remove a copy with no
+history; set another to
+Withdrawn
+Removed;
+status
+changed
+Both succeeded Pass
+T20 Search Search by a copy
+number and by a parent
+category
+Matching
+books
+shown
+Matching books
+returned for both
+Pass
+T21 Update
+book
+Change shelf and
+remove cover
+Record
+updated; old
+file deleted
+Updated; cover file
+removed
+Pass
+T22 Delete
+book
+Book with borrowing
+history
+Error Rejected Pass
+T23 Delete
+book
+Book with no history Book
+deleted
+Deleted Pass
+T24 Login Correct username and
+password
+User
+returned
+Login succeeded Pass
+T25 Statistics Request library
+statistics
+Correct
+counts
+Counts returned for
+titles, copies, members,
+loans, overdue
+Pass
+T26 Add
+member
+Valid details Member
+saved as
+Active
+Saved Pass
+
+=== PAGE 36 ===
+35
+T27 Interface Open Home, Books,
+Categories, Members,
+Borrow, Reports; open
+book form, edit form
+and Manage Copies
+No errors All opened without
+errors
+Pass
+T28 Interface Select a book on the
+Borrow screen
+Its available
+copy
+numbers
+listed
+Copy numbers listed Pass
+T29 Login Wrong password Error
+message, no
+access
+"Incorrect username or
+password." Access to
+the system denied.
+Pass
+T30 Add book Title left empty Validation
+message
+Warning message 
+displayed: "Title, 
+Author and ISBN are 
+required." Book not 
+saved.
+Pass
+T31 Add book Year entered as text Validation
+message
+Warning message 
+displayed: 
+"Publication year must
+be a number." Book 
+not saved.
+Pass
+T32 Add
+member
+Email already
+registered
+Duplicate
+error
+Duplicate error 
+displayed: "A member 
+with this email is 
+already registered." 
+Member not added.
+Pass
+T33 Deactivate
+member
+Member has a
+borrowed book
+Error Error message 
+displayed: "Cannot 
+remove a member who
+still has borrowed 
+books." Member 
+remains active.
+Pass
+T34 Issue book Member is Inactive Error Error message 
+displayed: "This 
+member is not active 
+and cannot borrow 
+books." Book not 
+issued.
+Pass
+
+=== PAGE 37 ===
+36
+T35 Return
+book
+Loan already returned Error Error message 
+displayed: "This book 
+has already been 
+returned."
+Pass
+T36 Search Keyword with no match Empty table No matching records
+displayed. Search
+results table remains
+empty.
+Pass
+T37 Log out Click Log Out, then No,
+then Yes
+Stays, then
+returns to
+login
+Selecting No keeps the
+user logged in.
+Selecting Yes logs out
+and returns to the login
+screen.
+Pass
+T38 Database MySQL stopped, start
+the program
+Connection
+error
+window
+Database connection
+error message displayed
+when MySQL is
+stopped. Application
+does not proceed to
+login.
+Pass
+4.3 TESTING SUMMARY
+Table 10 Testing summary
+Total tests Passed Failed Pending / not tested
+38 28 0 10
+4.4 PROBLEMS ENCOUNTERED AND SOLUTIONS
+Table 11 Problems and solutions
+Problem encountered Cause (if known) Action taken Outcome
+Copies of the same title
+could not be told apart
+Version 1 stored only
+total and available
+numbers on the book
+Added the book_copies
+table with unique copy
+numbers and statuses
+Resolved
+Running schema.sql a
+second time failed
+The index statements
+could not be repeated
+Moved the indexes
+inside the table
+definitions
+Resolved
+Deleting a book that had
+old loans would break the
+loan records
+Loan history points to
+copies
+Added a history check
+and a message advising
+Withdrawn
+Resolved
+
+=== PAGE 38 ===
+37
+Cover pictures in JPG
+format would not display
+Tkinter's own image
+class supports only a
+few formats
+Used Pillow to load and
+resize images
+Resolved
+Existing data from version
+1 does not fit the new
+tables
+Table design changed The database must be
+dropped and recreated
+with the new schema.sql
+Remaining
+(documented
+in
+README)
+Orphan cover files after a
+failed save
+File was saved before
+the database check
+The new file is deleted if
+saving the book fails
+Resolved
+4.5 EVALUATION AGAINST OBJECTIVES AND REQUIREMENTS
+Table 12 Evaluation against objectives
+Objective /
+requirement
+Evidence from implementation
+or testing
+evaluation
+Develop the
+system in Python
+Complete application, Chapter 3 Achieved
+Add, edit, view,
+delete books
+T01, T21, T22, T23; Books
+screen
+Achieved
+Member
+management
+module
+T26; Members screen. T32, T33
+pending
+Achieved (two tests pending)
+Borrowing and
+return
+T10-T17 Achieved
+MySQL storage Schema, Appendix D; all tests
+used the database
+Achieved
+Reports T25; Reports screen Achieved. Reports are on screen only,
+no export
+Validation and
+error handling
+T02, T05, T06, T09, T11-T14,
+T16, T18, T22 passed; T29-T31
+pending
+Achieved for business rules; form-level
+checks to be confirmed by the pending
+tests
+Functional
+requirements
+FR01-FR22
+Table 2.1 All 22 implemented; FR11 is done as
+deactivation rather than deletion
+
+=== PAGE 39 ===
+38
+CHAPTER 5 - USER GUIDE AND PROJECT COMPLETION
+5.1 SYSTEM REQUIREMENTS
+• Computer running Windows, macOS or Linux
+• Python 3.9 or newer with Tkinter (included in the standard Windows installer)
+• MySQL Server, for example the one in XAMPP, running on localhost port 3306
+• Python packages: mysql-connector-python and Pillow (listed in requirements.txt)
+• Required files: the complete SchoolLibrarySystem folder, including schema.sql and the
+covers folder
+5.2 INSTALLATION / SETUP INSTRUCTIONS
+1. Copy the SchoolLibrarySystem folder to your computer.
+2. Open the XAMPP Control Panel and click Start next to MySQL.
+3. Open http://localhost/phpmyadmin, choose the SQL tab, paste the contents of schema.sql
+and click Go. (If you used the older version 1, run DROP DATABASE
+school_library_db; first.)
+4. If your MySQL password is not blank, edit config.py with the correct user and password.
+5. Open a terminal in the project folder and run: pip install -r requirements.txt
+6. Start the program with: python main.py
+5.3 HOW TO USE THE APPLICATION
+1. Step 1: Run python main.py and log in with admin / admin123 (created automatically on
+first run).
+2. Step 2: Use the sidebar to move between Home, Books, Categories, Members, Borrow /
+Return and Reports.
+3. Step 3: To lend a book: open Books and add the title with its copies (and optional cover),
+open Members and register the borrower, then open Borrow / Return, choose the book,
+copy number and member, and press Issue Book.
+4. Step 4: To receive a book, select the loan and press Mark as Returned. Use Reports to
+view statistics and history. Press Log Out when finished, then close the window.
+5.4 KNOWN LIMITATIONS
+• The loan period is fixed at 14 days and cannot be changed in the interface.
+• There are no fines or reminders for overdue books; overdue loans are only highlighted.
+• Reports are shown on screen only and cannot be exported or printed.
+• There is one type of user. Passwords are hashed with SHA-256 without a salt, there is no
+change-password screen and no screen for creating more librarian accounts.
+
+=== PAGE 40 ===
+39
+• The program runs on one computer with a local MySQL database. There is no network,
+web or mobile access.
+• A book with borrowing history cannot be deleted; its copies must be marked Withdrawn.
+• Data from the first version cannot be migrated automatically to the new tables.
+• There is no backup or restore feature and no barcode scanning (copy numbers are typed
+or selected).
+• The interface has not been tested with very large collections.
+5.5 RECOMMENDATIONS FOR FUTURE IMPROVEMENT
+• Overdue fines and reminders for members.
+• Export of reports to PDF or CSV and printing of copy labels with barcodes.
+• Adjustable loan periods and borrowing limits per member type.
+• Multiple librarian accounts with roles, salted password hashing and a change-password
+screen.
+• Book reservations and a student-facing search page.
+• Backup and restore of the database.
+• Automatic data migration between schema versions.
+
+=== PAGE 41 ===
+40
+CHAPTER 6 - CONCLUSION
+6.1 PROJECT SUMMARY
+The project addressed the problem of manual, error-prone school library records. A desktop
+School Library Management System was developed in Python with a Tkinter interface and a
+MySQL database. It provides a secure login, a home dashboard, book management with nested
+categories, shelf locations and cover pictures, copy-level tracking with statuses, member
+management, borrowing and returns with due dates and overdue highlighting, and on-screen
+reports. Validation and business rules in a separate data layer protect the records from
+duplicates and unsafe changes.
+6.2 ACHIEVEMENT OF OBJECTIVES
+All seven Phase 1 objectives were achieved (Table 1.1 and Table 4.4). All 22 functional
+requirements were implemented (Table 2.1). Of 38 planned tests, 28 were run and passed, none
+failed, and 10 form-level and error tests are pending. The system also goes beyond the proposal
+through copy-level tracking, nested categories and cover pictures.
+6.3 LESSONS LEARNT
+Technical lessons: separating the interface, business rules and database access made the
+program easier to change, and it allowed the same rules to be tested without opening any
+window. Designing the data around real objects matters: storing one row per physical copy
+solved problems that a simple count could not. Putting constraints and checks in the data layer,
+for example unique ISBNs and blocked deletions, prevents bad data whichever screen is used.
+Testing against a real database found issues that reading the code did not.
+Personal lessons: planning in phases made a large task manageable, and writing flowcharts
+and a test plan before coding reduced rework. Requirements can grow during development, so
+the design must be kept up to date and changes must be documented honestly. I also learnt to
+record only the tests I have actually run.
+6.4 REMARKS
+The School Library Management System is a working, practical tool that lets a school librarian
+keep accurate records of books, copies, members and loans and find information quickly. With
+the limitations in Section 5.4 addressed in future versions, it can serve as a dependable library
+system for a school.
+
+=== PAGE 42 ===
+41
+REFERENCES
+Python Software Foundation (n.d.) tkinter - Python interface to Tcl/Tk. Available at:
+https://docs.python.org/3/library/tkinter.html 
+Oracle Corporation (n.d.) MySQL Connector/Python Developer Guide. Available at:
+https://dev.mysql.com/doc/connector-python/en/ 
+Oracle Corporation (n.d.) MySQL Reference Manual. Available at:
+https://dev.mysql.com/doc/refman/8.0/en/ 
+Pillow contributors (n.d.) Pillow documentation. Available at: https://pillow.readthedocs.io/
+Python Software Foundation (n.d.) hashlib - Secure hashes and message digests. Available at:
+https://docs.python.org/3/library/hashlib.html 
+Apache Friends (n.d.) XAMPP. Available at: https://www.apachefriends.org/
+
+=== PAGE 43 ===
+42
+APPENDICES
+APPENDIX A - ADDITIONAL SCREENSHOTS AND OUTPUT SAMPLES
+APPENDIX B - DATABASE STRUCTURE (schema.sql)
+CREATE DATABASE IF NOT EXISTS school_library_db;
+USE school_library_db;
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password_hash VARCHAR(64) NOT NULL,
+    full_name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+=== PAGE 44 ===
+43
+CREATE TABLE IF NOT EXISTS categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    parent_id INT NULL,
+    FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE RESTRICT
+);
+CREATE TABLE IF NOT EXISTS books (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    author VARCHAR(150) NOT NULL,
+    category_id INT NULL,
+    publication_year INT,
+    isbn VARCHAR(20) UNIQUE NOT NULL,
+    shelf_location VARCHAR(50),
+    cover_image VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_books_title (title),
+    KEY idx_books_author (author),
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
+);
+CREATE TABLE IF NOT EXISTS book_copies (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    book_id INT NOT NULL,
+    copy_number VARCHAR(30) UNIQUE NOT NULL,
+status ENUM('Available','Borrowed','Damaged','Lost','Withdrawn') NOT NULL DEFAULT
+'Available',
+    notes VARCHAR(200),
+    acquired_on DATE,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS members (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(150) NOT NULL,
+    member_type ENUM('Student','Staff') NOT NULL DEFAULT 'Student',
+    contact VARCHAR(50),
+    email VARCHAR(100) UNIQUE,
+    status ENUM('Active','Inactive') NOT NULL DEFAULT 'Active',
+    registered_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_members_name (full_name)
+);
+
+=== PAGE 45 ===
+44
+CREATE TABLE IF NOT EXISTS borrow_records (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    copy_id INT NOT NULL,
+    member_id INT NOT NULL,
+    borrow_date DATE NOT NULL,
+    due_date DATE NOT NULL,
+    return_date DATE NULL,
+    status ENUM('Borrowed','Returned') NOT NULL DEFAULT 'Borrowed',
+    FOREIGN KEY (copy_id) REFERENCES book_copies(id),
+    FOREIGN KEY (member_id) REFERENCES members(id)
+);

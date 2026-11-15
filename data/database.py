@@ -260,6 +260,10 @@ def get_tenants():
             """
             SELECT
                 tenants.tenant_id,
+                tenants.property_id,
+                tenants.lease_start,
+                tenants.emergency_contact,
+                properties.location,
                 tenants.tenant_name,
                 tenants.phone,
                 tenants.email,
@@ -397,6 +401,8 @@ def get_payments():
             """
             SELECT
                 payments.payment_id,
+                payments.tenant_id,
+                tenants.monthly_rent,
                 tenants.tenant_name,
                 tenants.phone,
                 properties.property_name,
@@ -632,4 +638,70 @@ def get_account_settings(username=DEFAULT_USERNAME):
         return account
     finally:
         cursor.close()
+        connection.close()
+
+
+def update_property(record_id, record_data):
+    """Update the selected property without replacing its ID or linked records."""
+
+    connection = get_connection()
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "UPDATE properties SET property_name = %s, location = %s, total_units = %s, monthly_rent = %s, extra_details = %s WHERE property_id = %s",
+            tuple(record_data[field] if record_data[field] != "" else None
+                  for field in ('property_name', 'location', 'total_units', 'monthly_rent', 'extra_details')) + (record_id,),
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        connection.close()
+
+
+def update_tenant(record_id, record_data):
+    """Update the selected tenant without replacing its ID or linked records."""
+
+    connection = get_connection()
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "UPDATE tenants SET property_id = %s, tenant_name = %s, phone = %s, email = %s, unit_number = %s, lease_start = %s, monthly_rent = %s, emergency_contact = %s, status = %s, kyc_image_path = %s, lc1_letter_path = %s, extra_details = %s WHERE tenant_id = %s",
+            tuple(record_data[field] if record_data[field] != "" else None
+                  for field in ('property_id', 'tenant_name', 'phone', 'email', 'unit_number', 'lease_start', 'monthly_rent', 'emergency_contact', 'status', 'kyc_image_path', 'lc1_letter_path', 'extra_details')) + (record_id,),
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
+        connection.close()
+
+
+def update_payment(record_id, record_data):
+    """Update the selected payment without replacing its ID or linked records."""
+
+    connection = get_connection()
+    cursor = None
+    try:
+        cursor = connection.cursor()
+        cursor.execute(
+            "UPDATE payments SET tenant_id = %s, amount = %s, payment_date = %s, payment_method = %s, reference_no = %s, notes = %s, balance = %s, status = %s WHERE payment_id = %s",
+            tuple(record_data[field] if record_data[field] != "" else None
+                  for field in ('tenant_id', 'amount', 'payment_date', 'payment_method', 'reference_no', 'notes', 'balance', 'status')) + (record_id,),
+        )
+        connection.commit()
+    except Exception:
+        connection.rollback()
+        raise
+    finally:
+        if cursor is not None:
+            cursor.close()
         connection.close()

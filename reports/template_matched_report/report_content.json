@@ -1,0 +1,1804 @@
+[
+  [
+    "cover"
+  ],
+  [
+    "heading",
+    "DECLARATION",
+    1
+  ],
+  [
+    "paragraph",
+    "I, Nahabwe Derrick Eric, submit this report as a record of my Rental Management System project. It explains the design, the current application, the tests carried out, and the work that remains. The project files, earlier reports, tools, and report template used in preparing this document are listed in the References section."
+  ],
+  [
+    "paragraph",
+    "I am responsible for reviewing this report and explaining the work presented in it."
+  ],
+  [
+    "paragraph",
+    "Signed: ______________________________"
+  ],
+  [
+    "paragraph",
+    "Date: ________________________________"
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "ACKNOWLEDGEMENT",
+    1
+  ],
+  [
+    "paragraph",
+    "I thank my instructor, Ajwadh Jalal, for the guidance provided during the course, and Sai Pali Institute of Technology and Management for the learning environment and resources."
+  ],
+  [
+    "paragraph",
+    "I also acknowledge the Python, Tkinter, and MySQL tools used in this project. The earlier proposal and design report helped organise the work. Namwanje Cabrine Jane's School Library Management System report was used as a guide for the format and order of this report."
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "ABSTRACT / EXECUTIVE SUMMARY",
+    1
+  ],
+  [
+    "paragraph",
+    "Landlords and property managers need to keep property details, tenant information, and rent payments together. When these records are kept in notebooks or separate files, finding information and checking balances can take time. The Rental Management System was developed to bring these tasks into one desktop application."
+  ],
+  [
+    "paragraph",
+    "The application uses Python and Tkinter for its screens and a MySQL-compatible database for storage. Its main sections are Dashboard, Properties, Tenants, Payments, and Settings. The current code supports adding and viewing properties and tenants, recording rent and balances, creating text receipts, saving settings, and logging out. Tenant records can also store paths to identification documents and LC1 letters."
+  ],
+  [
+    "paragraph",
+    "Thirteen checks were run for this report on 12 November 2026. Ten checked source code and selected functions, and three checked logout using real Tkinter controls. All thirteen passed. Database calls were replaced during these checks, so the results do not confirm live database saving or physical printing. A database export is included in the project folder, but importing it and checking the full application remain separate tasks."
+  ],
+  [
+    "paragraph",
+    "The project provides a useful starting point for managing rental records. The six main objectives are partly achieved. Editing, filtered search, complete lease tracking, detailed reports, and exports still need work. The login also needs stronger security, and payment history should be kept when a tenant or property is removed."
+  ],
+  [
+    "break"
+  ],
+  [
+    "index",
+    "TABLE OF CONTENT",
+    "toc"
+  ],
+  [
+    "break"
+  ],
+  [
+    "index",
+    "TABLE OF FIGURES",
+    "figures"
+  ],
+  [
+    "break"
+  ],
+  [
+    "index",
+    "TABLE OF TABLES",
+    "tables"
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "CHAPTER 1 - INTRODUCTION AND PROJECT OVERVIEW",
+    1
+  ],
+  [
+    "heading",
+    "1.1 PROJECT BACKGROUND / INTRODUCTION",
+    2
+  ],
+  [
+    "paragraph",
+    "Managing rental property involves keeping details about houses or apartments, the people renting them, and the money paid each month. A manager may also need contact information, lease dates, identification documents, and receipts. These details are connected and should be easy to find."
+  ],
+  [
+    "paragraph",
+    "Paper records and spreadsheets can work for a small number of tenants. As the number grows, it becomes harder to keep every record up to date. A payment may be recorded in one place while the tenant details are kept elsewhere. This creates extra work when checking an account or preparing a receipt."
+  ],
+  [
+    "paragraph",
+    "The Rental Management System is a local desktop application intended for landlords and property managers. It brings property, tenant, and rent information into related screens. This report links the current application to the project proposal and the Phase 2 design."
+  ],
+  [
+    "heading",
+    "1.2 PROBLEM STATEMENT",
+    2
+  ],
+  [
+    "paragraph",
+    "Manual rental records can be misplaced, repeated, or entered incorrectly. A manager may find it difficult to confirm who occupies a unit, how much rent has been paid, or what balance remains. Separate files also make lease tracking and monthly reporting harder."
+  ],
+  [
+    "paragraph",
+    "The project therefore aims to provide one place for rental records and routine payment work. The current application addresses registration and payment recording, while full lease management, search, and detailed reporting remain incomplete."
+  ],
+  [
+    "heading",
+    "1.3 PROJECT AIM AND OBJECTIVES",
+    2
+  ],
+  [
+    "paragraph",
+    "Aim: To develop a Python desktop application that helps landlords and property managers keep property, tenant, lease, and rent-payment records in one place."
+  ],
+  [
+    "table",
+    "Table 1 Objectives and achievement status",
+    [
+      "Objective",
+      "Status",
+      "Evidence / explanation"
+    ],
+    [
+      [
+        "O1: Add, modify, view, and remove property listings",
+        "Partly achieved",
+        "Adding, viewing, and deleting are in the code. Editing is not available."
+      ],
+      [
+        "O2: Register tenants and update resident profiles",
+        "Partly achieved",
+        "Registration and viewing are present. Editing tenant details is missing."
+      ],
+      [
+        "O3: Record monthly rent and manage lease terms",
+        "Partly achieved",
+        "Payments and balances are recorded. Lease expiry and move-out processing are missing."
+      ],
+      [
+        "O4: Store and retrieve records securely using MySQL",
+        "Partly achieved",
+        "Database functions and a SQL export are present. Live checks and secure login are still needed."
+      ],
+      [
+        "O5: Produce financial and vacancy summaries",
+        "Partly achieved",
+        "Dashboard figures are present. Full reports and exports are missing."
+      ],
+      [
+        "O6: Check entries and handle errors",
+        "Partly achieved",
+        "Selected checks pass. Contact, duplicate-unit, document, and range checks need improvement."
+      ]
+    ],
+    [
+      0.38,
+      0.17,
+      0.45
+    ]
+  ],
+  [
+    "heading",
+    "1.4 PROJECT SCOPE",
+    2
+  ],
+  [
+    "table",
+    "Table 2 Scope: planned versus final",
+    [
+      "Area",
+      "Original plan",
+      "Current outcome"
+    ],
+    [
+      [
+        "In scope",
+        "Property and unit records",
+        "Property records and total unit counts exist. There is no separate unit inventory or editing."
+      ],
+      [
+        "In scope",
+        "Tenant registration and profile management",
+        "Registration, viewing, notes, document paths, and deletion exist. Profile editing is missing."
+      ],
+      [
+        "In scope",
+        "Rent payments and lease tracking",
+        "Payments, balances, and lease start dates exist. Lease expiry and move-out tracking are incomplete."
+      ],
+      [
+        "In scope",
+        "Search, financial reports, vacancy reports, and exports",
+        "Dashboard summaries and text receipts exist. Dedicated search, full reports, and exports are missing."
+      ],
+      [
+        "In scope",
+        "Tkinter interface, login, MySQL storage, and validation",
+        "Present in the code, with a demonstration login and partial validation."
+      ],
+      [
+        "Out of scope",
+        "Web and mobile apps, cloud services, multiple-company management",
+        "Remain outside this desktop project."
+      ],
+      [
+        "Out of scope",
+        "Online payments, digital signing, biometrics, and rent prediction",
+        "Not implemented. Payment-method choices only describe how money was received."
+      ]
+    ],
+    [
+      0.14,
+      0.38,
+      0.48
+    ]
+  ],
+  [
+    "paragraph",
+    "A planned feature that is unfinished is still part of the project scope. It has not been moved to the out-of-scope list."
+  ],
+  [
+    "heading",
+    "1.5 INTENDED USERS AND BENEFITS",
+    2
+  ],
+  [
+    "paragraph",
+    "The direct users are landlords and property managers. They can use the application to look up properties, register tenants, enter rent payments, and prepare receipts. Selecting an existing property or tenant from a list reduces repeated typing."
+  ],
+  [
+    "paragraph",
+    "Tenants may benefit from clearer records and receipts. These are expected benefits of the design; no study was carried out to measure time saved or reductions in errors."
+  ],
+  [
+    "heading",
+    "1.6 REPORT STRUCTURE",
+    2
+  ],
+  [
+    "paragraph",
+    "Chapter 1 introduces the project, objectives, and scope. Chapter 2 explains the requirements and design. Chapter 3 describes the implementation. Chapter 4 presents the tests and results. Chapter 5 gives setup instructions, a user guide, limitations, and recommendations. Chapter 6 concludes the report. References and appendices follow."
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "CHAPTER 2 - SYSTEM ANALYSIS AND DESIGN",
+    1
+  ],
+  [
+    "heading",
+    "2.1 FUNCTIONAL REQUIREMENTS",
+    2
+  ],
+  [
+    "paragraph",
+    "The following requirements follow the approved project scope recorded in the earlier project documents. Implemented means that the feature exists in the source code. Testing is reported separately in Chapter 4."
+  ],
+  [
+    "table",
+    "Table 3 Functional requirements and status",
+    [
+      "ID",
+      "Requirement",
+      "Status",
+      "Evidence"
+    ],
+    [
+      [
+        "FR01",
+        "Secure administrator or manager login",
+        "Partial",
+        "A fixed demonstration login is used."
+      ],
+      [
+        "FR02",
+        "Restrict access before login",
+        "Partial",
+        "Main pages follow login, but there are no user roles."
+      ],
+      [
+        "FR03",
+        "Add property listings",
+        "Implemented",
+        "Add Property form and add_property()."
+      ],
+      [
+        "FR04",
+        "Edit property details and prices",
+        "Missing",
+        "No property editing action."
+      ],
+      [
+        "FR05",
+        "Remove property listings",
+        "Implemented",
+        "Confirmed deletion also removes related records."
+      ],
+      [
+        "FR06",
+        "Display a full rental-unit inventory",
+        "Partial",
+        "Properties have total unit counts, not separate unit records."
+      ],
+      [
+        "FR07",
+        "Search listings using several filters",
+        "Missing",
+        "No dedicated property search or filters."
+      ],
+      [
+        "FR08",
+        "Register tenants",
+        "Implemented",
+        "Tenant form and add_tenant()."
+      ],
+      [
+        "FR09",
+        "Update tenant contacts and lease assignments",
+        "Missing",
+        "No tenant editing workflow."
+      ],
+      [
+        "FR10",
+        "View tenant records",
+        "Implemented",
+        "Tenants table shows linked properties and units."
+      ],
+      [
+        "FR11",
+        "Remove tenants who have left",
+        "Partial",
+        "Deletion exists, but also removes their payment history."
+      ],
+      [
+        "FR12",
+        "Process leases for registered tenants",
+        "Partial",
+        "Property assignment and a start date exist; expiry, renewals, and checkout are missing."
+      ],
+      [
+        "FR13",
+        "Record rent payments and monthly balances",
+        "Partial",
+        "Payment entries and balances exist; there is no full monthly ledger or automatic carry-forward."
+      ],
+      [
+        "FR14",
+        "Update vacancy after leasing or checkout",
+        "Missing",
+        "No separate unit or checkout workflow."
+      ],
+      [
+        "FR15",
+        "Preserve tenant and financial history",
+        "Missing",
+        "Deleting tenants or properties removes related payments; there is no archive."
+      ],
+      [
+        "FR16",
+        "Show current-vacancy summaries",
+        "Partial",
+        "Occupancy is estimated from tenant and unit counts, without a vacant-unit list."
+      ],
+      [
+        "FR17",
+        "Report earnings and outstanding balances",
+        "Partial",
+        "Dashboard totals exist; detailed period-based reports are absent."
+      ],
+      [
+        "FR18",
+        "Export active-tenant lists",
+        "Missing",
+        "No tenant export action."
+      ],
+      [
+        "FR19",
+        "Display a portfolio dashboard",
+        "Implemented",
+        "Summary cards, occupancy, rent totals, and recent activity are in the code."
+      ],
+      [
+        "FR20",
+        "Validate input formats before saving",
+        "Partial",
+        "Some required-field, number, email, and payment-date checks exist."
+      ],
+      [
+        "FR21",
+        "Block duplicate records",
+        "Partial",
+        "No comprehensive form-level checks; the export has unique phone and payment-reference keys."
+      ],
+      [
+        "FR22",
+        "Show useful invalid-input alerts",
+        "Implemented",
+        "Selected warning and error messages are present and tested."
+      ]
+    ],
+    [
+      0.1,
+      0.34,
+      0.15,
+      0.41
+    ]
+  ],
+  [
+    "heading",
+    "2.2 SYSTEM ARCHITECTURE",
+    2
+  ],
+  [
+    "paragraph",
+    "The application separates the screens from the database functions. main.py starts the program and controls navigation. The page classes collect input and show results. Shared components provide the sidebar, header, cards, and tables. data/database.py sends queries to the database."
+  ],
+  [
+    "paragraph",
+    "For example, when a payment is saved, the page reads the form, checks the supported values, calculates the amount paid, and calls the database function. After a successful save, it reloads the payment table. Most validation still sits inside the page classes."
+  ],
+  [
+    "figure",
+    "Figure 1 System architecture",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\diagrams\\final_architecture.png",
+    320
+  ],
+  [
+    "table",
+    "Table 4 Modules and files",
+    [
+      "Module / file",
+      "Responsibility"
+    ],
+    [
+      [
+        "main.py",
+        "Creates the application, checks database access, changes pages, and handles logout."
+      ],
+      [
+        "config/settings.py",
+        "Stores window settings, colours, fonts, demonstration login, and database configuration."
+      ],
+      [
+        "pages/",
+        "Contains Login, Dashboard, Properties, Tenants, Payments, Settings, and the shared base page."
+      ],
+      [
+        "components/",
+        "Contains the sidebar, header, statistic cards, and reusable table."
+      ],
+      [
+        "data/database.py",
+        "Provides database connections, queries, saves, deletes, and dashboard totals."
+      ],
+      [
+        "data/seed_sample_rentals.py",
+        "Optional script for adding labelled fictional rental records. It is not run at startup."
+      ],
+      [
+        "rental_management_system.sql",
+        "Database export with table definitions, keys, and existing records."
+      ],
+      [
+        "tests/ and report_checks.py",
+        "Contain logout tests and checks for selected application functions."
+      ]
+    ],
+    [
+      0.34,
+      0.66
+    ]
+  ],
+  [
+    "heading",
+    "2.3 FLOWCHARTS",
+    2
+  ],
+  [
+    "paragraph",
+    "These flows describe operations found in the current application. A rejected entry returns the user to the form for correction. Editing and filtered search are not shown as completed features because they are not available in the current code."
+  ],
+  [
+    "figure",
+    "Figure 2 Login flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\login.png",
+    355
+  ],
+  [
+    "figure",
+    "Figure 3 Add Property flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\property.png",
+    355
+  ],
+  [
+    "figure",
+    "Figure 4 Register Tenant flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\tenant.png",
+    355
+  ],
+  [
+    "figure",
+    "Figure 5 Record Payment flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\payment.png",
+    355
+  ],
+  [
+    "figure",
+    "Figure 6 Receipt flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\receipt.png",
+    355
+  ],
+  [
+    "figure",
+    "Figure 7 Delete Record flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\delete.png",
+    355
+  ],
+  [
+    "figure",
+    "Figure 8 View Records flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\view.png",
+    355
+  ],
+  [
+    "figure",
+    "Figure 9 Exit / Log Out flowchart",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\template_matched_report\\logout.png",
+    355
+  ],
+  [
+    "heading",
+    "2.4 DATA STRUCTURE / DATABASE DESIGN",
+    2
+  ],
+  [
+    "paragraph",
+    "The database has five main tables: users, properties, tenants, payments, and app_settings. A property can have many tenants, and a tenant can have many payments. The application uses property_id and tenant_id to link these records."
+  ],
+  [
+    "paragraph",
+    "There is no separate units or leases table. A unit number and lease start date are stored on the tenant record. The users table exists, but the current login compares values from configuration instead of checking that table."
+  ],
+  [
+    "figure",
+    "Figure 10 Database relationships",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\diagrams\\final_database_relationships.png",
+    320
+  ],
+  [
+    "table",
+    "Table 5 Database tables and fields",
+    [
+      "Table",
+      "Field",
+      "Type and rule in the supplied export"
+    ],
+    [
+      [
+        "app_settings",
+        "setting_key",
+        "varchar(80) NOT NULL"
+      ],
+      [
+        "app_settings",
+        "setting_value",
+        "text NOT NULL"
+      ],
+      [
+        "app_settings",
+        "updated_at",
+        "timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()"
+      ],
+      [
+        "payments",
+        "payment_id",
+        "int(11) NOT NULL"
+      ],
+      [
+        "payments",
+        "tenant_id",
+        "int(11) NOT NULL"
+      ],
+      [
+        "payments",
+        "amount",
+        "decimal(12,2) NOT NULL"
+      ],
+      [
+        "payments",
+        "payment_date",
+        "date NOT NULL"
+      ],
+      [
+        "payments",
+        "payment_method",
+        "varchar(40) NOT NULL"
+      ],
+      [
+        "payments",
+        "reference_no",
+        "varchar(80) DEFAULT NULL"
+      ],
+      [
+        "payments",
+        "notes",
+        "text DEFAULT NULL"
+      ],
+      [
+        "payments",
+        "balance",
+        "decimal(12,2) NOT NULL DEFAULT 0.00"
+      ],
+      [
+        "payments",
+        "status",
+        "varchar(30) NOT NULL DEFAULT 'Paid'"
+      ],
+      [
+        "payments",
+        "created_at",
+        "timestamp NOT NULL DEFAULT current_timestamp()"
+      ],
+      [
+        "properties",
+        "property_id",
+        "int(11) NOT NULL"
+      ],
+      [
+        "properties",
+        "property_name",
+        "varchar(120) NOT NULL"
+      ],
+      [
+        "properties",
+        "location",
+        "varchar(120) NOT NULL"
+      ],
+      [
+        "properties",
+        "total_units",
+        "int(11) NOT NULL DEFAULT 0"
+      ],
+      [
+        "properties",
+        "monthly_rent",
+        "decimal(12,2) NOT NULL DEFAULT 0.00"
+      ],
+      [
+        "properties",
+        "status",
+        "varchar(30) NOT NULL DEFAULT 'Active'"
+      ],
+      [
+        "properties",
+        "extra_details",
+        "text DEFAULT NULL"
+      ],
+      [
+        "properties",
+        "created_at",
+        "timestamp NOT NULL DEFAULT current_timestamp()"
+      ],
+      [
+        "tenants",
+        "tenant_id",
+        "int(11) NOT NULL"
+      ],
+      [
+        "tenants",
+        "property_id",
+        "int(11) NOT NULL"
+      ],
+      [
+        "tenants",
+        "tenant_name",
+        "varchar(120) NOT NULL"
+      ],
+      [
+        "tenants",
+        "phone",
+        "varchar(40) NOT NULL"
+      ],
+      [
+        "tenants",
+        "email",
+        "varchar(120) DEFAULT NULL"
+      ],
+      [
+        "tenants",
+        "unit_number",
+        "varchar(40) NOT NULL"
+      ],
+      [
+        "tenants",
+        "lease_start",
+        "date DEFAULT NULL"
+      ],
+      [
+        "tenants",
+        "monthly_rent",
+        "decimal(12,2) NOT NULL DEFAULT 0.00"
+      ],
+      [
+        "tenants",
+        "emergency_contact",
+        "varchar(120) DEFAULT NULL"
+      ],
+      [
+        "tenants",
+        "status",
+        "varchar(30) NOT NULL DEFAULT 'Active'"
+      ],
+      [
+        "tenants",
+        "kyc_image_path",
+        "varchar(500) DEFAULT NULL"
+      ],
+      [
+        "tenants",
+        "lc1_letter_path",
+        "varchar(500) DEFAULT NULL"
+      ],
+      [
+        "tenants",
+        "extra_details",
+        "text DEFAULT NULL"
+      ],
+      [
+        "tenants",
+        "created_at",
+        "timestamp NOT NULL DEFAULT current_timestamp()"
+      ],
+      [
+        "users",
+        "user_id",
+        "int(11) NOT NULL"
+      ],
+      [
+        "users",
+        "username",
+        "varchar(50) NOT NULL"
+      ],
+      [
+        "users",
+        "password",
+        "varchar(255) NOT NULL"
+      ],
+      [
+        "users",
+        "role",
+        "varchar(30) NOT NULL DEFAULT 'Admin'"
+      ],
+      [
+        "users",
+        "created_at",
+        "timestamp NOT NULL DEFAULT current_timestamp()"
+      ]
+    ],
+    [
+      0.18,
+      0.28,
+      0.54
+    ]
+  ],
+  [
+    "paragraph",
+    "Primary keys identify users, properties, tenants, and payments. app_settings uses setting_key as its key. The export defines indexes and relationships separately with ALTER TABLE statements. Appendix B includes the structure without copying its existing personal or account records."
+  ],
+  [
+    "paragraph",
+    "The supplied export header identifies MariaDB 10.4.32 and phpMyAdmin 5.2.1. These describe the export source. They do not prove that a matching server was running during the tests in this report."
+  ],
+  [
+    "heading",
+    "2.5 USER INTERFACE / MENU DESIGN",
+    2
+  ],
+  [
+    "paragraph",
+    "The login screen opens before the main interface. After sign-in, the window has a dark sidebar on the left and a content area on the right. The sidebar contains Dashboard, Properties, Tenants, Payments, Settings, and Logout."
+  ],
+  [
+    "paragraph",
+    "Dashboard shows summary figures and recent activity. Properties and Tenants show tables with entry and deletion actions. Payments allows the user to record rent and create a receipt. Settings contains company details and preferences. Entry forms open in separate windows with Save and Cancel buttons."
+  ],
+  [
+    "heading",
+    "2.6 DESIGN CHANGES",
+    2
+  ],
+  [
+    "table",
+    "Table 6 Design changes after Phase 2",
+    [
+      "Earlier design",
+      "Current implementation",
+      "Effect"
+    ],
+    [
+      [
+        "Separate service and validation modules",
+        "Most validation remains in page methods",
+        "The code has fewer modules, but form and business rules are closely connected."
+      ],
+      [
+        "Complete add, edit, delete, view, and search",
+        "Add/view plus property and tenant deletion",
+        "Editing and filtered search remain unfinished."
+      ],
+      [
+        "Create database tables during setup",
+        "Startup checks existing tables; a SQL export is now supplied",
+        "The database must be prepared separately."
+      ],
+      [
+        "Use sample screens when the database is unavailable",
+        "Startup shows an error and closes",
+        "The app does not silently treat sample records as saved records."
+      ],
+      [
+        "Block or reassign related records on deletion",
+        "Delete linked payments and tenants in a transaction",
+        "History is removed and should be preserved in a future version."
+      ],
+      [
+        "Automatic balance handling",
+        "The user enters the balance for each payment",
+        "The stored amount paid is main amount minus balance."
+      ]
+    ],
+    [
+      0.3,
+      0.35,
+      0.35
+    ]
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "CHAPTER 3 - SYSTEM IMPLEMENTATION",
+    1
+  ],
+  [
+    "heading",
+    "3.1 DEVELOPMENT ENVIRONMENT AND TOOLS",
+    2
+  ],
+  [
+    "table",
+    "Table 7 Development tools",
+    [
+      "Item",
+      "Tool",
+      "Purpose"
+    ],
+    [
+      [
+        "Language",
+        "Python",
+        "Application logic, calculations, and file handling."
+      ],
+      [
+        "Interface",
+        "Tkinter and ttk",
+        "Windows, forms, buttons, dropdowns, and tables."
+      ],
+      [
+        "Database connector",
+        "mysql-connector-python",
+        "Connects Python to the configured MySQL-compatible database."
+      ],
+      [
+        "Storage",
+        "MySQL-compatible database; MariaDB shown in the export",
+        "Stores linked records outside the running program."
+      ],
+      [
+        "Operating system",
+        "Windows",
+        "Runs the current application and supports its print request."
+      ],
+      [
+        "Editor",
+        "Visual Studio Code, as proposed in the project plan",
+        "Proposed tool for editing and running code."
+      ],
+      [
+        "Standard modules",
+        "datetime, pathlib, os, and platform",
+        "Dates, paths, receipt files, and operating-system checks."
+      ],
+      [
+        "Testing",
+        "ast, unittest, and unittest.mock",
+        "Syntax, selected functions, and login/logout checks."
+      ]
+    ],
+    [
+      0.22,
+      0.35,
+      0.43
+    ]
+  ],
+  [
+    "paragraph",
+    "The report-building libraries are documentation tools. They are not required to run the rental application. The project requirements.txt lists mysql-connector-python as its external application dependency."
+  ],
+  [
+    "heading",
+    "3.2 PROJECT FOLDER AND FILE STRUCTURE",
+    2
+  ],
+  [
+    "code",
+    "Rental Management System/\n  main.py\n  requirements.txt\n  README.md\n  rental_management_system.sql\n  config/\n    settings.py\n  components/\n    header.py, sidebar.py, simple_table.py, stat_card.py\n  pages/\n    base_page.py, login_page.py, dashboard_page.py\n    properties_page.py, tenants_page.py\n    payments_page.py, settings_page.py\n  data/\n    database.py\n    seed_sample_rentals.py\n    receipts/                 (created when needed)\n  tests/\n    test_logout.py\n  report_checks.py\n  assets/\n  reports/"
+  ],
+  [
+    "paragraph",
+    "Configuration, reusable controls, screens, and database functions are kept in separate folders. This makes it easier to locate a feature. receipts/ holds generated text receipts; it may not exist until the first receipt is created."
+  ],
+  [
+    "heading",
+    "3.3 IMPLEMENTED MODULES AND FUNCTIONS",
+    2
+  ],
+  [
+    "table",
+    "Table 8 Main functions",
+    [
+      "Function / module",
+      "Input",
+      "Result"
+    ],
+    [
+      [
+        "initialize_database()",
+        "Configured database connection",
+        "Checks access to all five required tables; it does not create them."
+      ],
+      [
+        "LoginPage.check_login()",
+        "Username and password fields",
+        "Opens the main layout or shows a login error."
+      ],
+      [
+        "RentalManagementApp.show_page()",
+        "Page name",
+        "Changes the visible page and refreshes its data."
+      ],
+      [
+        "RentalManagementApp.logout()",
+        "Current interface state",
+        "Closes old pages and forms and returns to login."
+      ],
+      [
+        "add_property()",
+        "Property details",
+        "Inserts a property and returns its ID."
+      ],
+      [
+        "add_tenant()",
+        "Tenant details and property_id",
+        "Inserts a linked tenant record."
+      ],
+      [
+        "add_payment()",
+        "Payment details and tenant_id",
+        "Inserts a linked payment record."
+      ],
+      [
+        "get_properties(), get_tenants(), get_payments()",
+        "Current database records",
+        "Returns rows for the relevant tables."
+      ],
+      [
+        "delete_property(), delete_tenant()",
+        "Selected record ID",
+        "Deletes the record and linked records in a transaction."
+      ],
+      [
+        "get_dashboard_summary()",
+        "Current database records",
+        "Returns counts, payment totals, and recent activity."
+      ],
+      [
+        "save_app_settings()",
+        "Setting names and values",
+        "Inserts or updates preferences."
+      ],
+      [
+        "PaymentsPage._create_receipt_file()",
+        "Selected payment record",
+        "Creates a local text receipt."
+      ]
+    ],
+    [
+      0.35,
+      0.25,
+      0.4
+    ]
+  ],
+  [
+    "heading",
+    "3.4 IMPLEMENTATION OF MAJOR FEATURES",
+    2
+  ],
+  [
+    "heading",
+    "3.4.1 Login",
+    3
+  ],
+  [
+    "paragraph",
+    "User action: enter the username and password, then sign in. Processing: the login page compares them with the demonstration values in config/settings.py. Result: the main layout opens when they match. An incorrect password is rejected and cleared. The current login is a demonstration check, not secure database authentication."
+  ],
+  [
+    "heading",
+    "3.4.2 Property management",
+    3
+  ],
+  [
+    "paragraph",
+    "User action: choose Add Property and enter a name, location, number of units, monthly rent, and optional details. Processing: the form checks required entries and numeric values, then calls add_property(). Data: properties table. Result: the saved property appears when the table reloads."
+  ],
+  [
+    "paragraph",
+    "Delete Selected asks for confirmation. The database function deletes payments linked through the property's tenants, then the tenants, and finally the property. It commits the changes together or rolls back if an error occurs. Property editing is not available."
+  ],
+  [
+    "heading",
+    "3.4.3 Tenant management",
+    3
+  ],
+  [
+    "paragraph",
+    "User action: register a tenant and select an active property. Selecting the property fills its default rent, which can be changed for that tenant. The required details include the name, phone number, property, unit number, and rent."
+  ],
+  [
+    "paragraph",
+    "Optional fields include email, lease start date, emergency contact, status, identification image path, LC1 letter path, and notes. The program stores document paths; it does not copy the documents into a managed folder. Deleting a tenant also deletes the tenant's payments. There is no tenant editing action."
+  ],
+  [
+    "heading",
+    "3.4.4 Rent payments and balances",
+    3
+  ],
+  [
+    "paragraph",
+    "User action: open Record Payment and select a tenant. The related property, unit, and rent are filled from that record. Enter the main amount, balance, payment date, method, reference, notes, and status. The program checks supported entries before saving."
+  ],
+  [
+    "paragraph",
+    "The calculation is: amount paid = main amount - balance. For a main amount of UGX 500,000 and balance of UGX 150,000, the amount paid is UGX 350,000. The program rejects a negative balance, a balance above the main amount, and an invalid payment date. Status is chosen manually rather than calculated from the balance."
+  ],
+  [
+    "paragraph",
+    "Cash, Mobile Money, Bank Transfer, and Card are record labels. Selecting one does not connect the application to a bank or payment gateway."
+  ],
+  [
+    "heading",
+    "3.4.5 Receipt creation",
+    3
+  ],
+  [
+    "paragraph",
+    "User action: select a saved payment and choose Print Receipt. Processing: the application creates a text file under data/receipts. The receipt includes company details, receipt number, tenant, property, unit, date, amounts, method, reference, and status."
+  ],
+  [
+    "paragraph",
+    "On Windows, the program asks the default application to print the file. Creating the receipt file and successfully printing it are separate outcomes. Physical printing was not verified in the tests for this report."
+  ],
+  [
+    "heading",
+    "3.4.6 Dashboard",
+    3
+  ],
+  [
+    "paragraph",
+    "The dashboard shows active property and tenant counts, unit totals, rent figures, occupancy, and recent activity. Current-month collected rent includes payments with status Paid. Pending rent is calculated as active tenants' expected rent minus that collected amount, with a minimum of zero."
+  ],
+  [
+    "paragraph",
+    "Occupancy is estimated from active tenant count divided by total units. This assumes one active tenant record per occupied unit. It is not a separate unit-by-unit vacancy register. Manually selected payment statuses and duplicate tenant assignments can affect the figures."
+  ],
+  [
+    "heading",
+    "3.4.7 Settings",
+    3
+  ],
+  [
+    "paragraph",
+    "Settings stores company and manager details, currency preference, rent due day, late fee, and reminder choices. Saving a reminder preference does not send an email or SMS. The late fee is not automatically charged. Several money displays still use UGX directly, even though a currency preference can be stored."
+  ],
+  [
+    "heading",
+    "3.4.8 Logout",
+    3
+  ],
+  [
+    "paragraph",
+    "When the user chooses Logout, the application closes open forms, destroys the old pages, clears navigation references, and creates a fresh login screen. The password is cleared and must be entered again. Unsaved form entries are discarded, while saved database records are not deleted by logout."
+  ],
+  [
+    "heading",
+    "3.5 INPUT VALIDATION AND ERROR HANDLING",
+    2
+  ],
+  [
+    "paragraph",
+    "Property forms check required details and whether units and rent can be converted to numbers. Tenant forms require the key details, check the selected property, and make a basic email check. Payment forms check the selected tenant, numeric amounts, date, and balance range. Settings checks the due day against 1 to 31 and requires a numeric late fee."
+  ],
+  [
+    "paragraph",
+    "Examples of messages in the program include Missing Details, Invalid Amount, Invalid Balance, Invalid Date, and Database Error. These messages give the user a chance to correct an entry or check the database connection."
+  ],
+  [
+    "paragraph",
+    "Some checks remain incomplete. Property and tenant rent need clearer non-negative limits. Phone format, document existence, duplicate unit assignments, and lease dates are not fully checked by the forms. A lost connection can also make some lists appear empty. Error reporting should be made consistent across all pages."
+  ],
+  [
+    "heading",
+    "3.6 DATA STORAGE AND RETRIEVAL",
+    2
+  ],
+  [
+    "paragraph",
+    "Database functions open a connection, run a query, and close the cursor and connection afterwards. Insert statements use parameter placeholders for record values. Successful writes are committed. Related deletions are rolled back if an error occurs. Settings uses an insert-or-update query to change existing values."
+  ],
+  [
+    "paragraph",
+    "The design supports keeping saved data after the program closes because the records are stored in the database. A live save-and-reopen test is still required to confirm this on the target computer. Document files remain at their selected paths, while receipts are separate text files."
+  ],
+  [
+    "heading",
+    "3.7 SCREENSHOTS OF THE COMPLETED APPLICATION",
+    2
+  ],
+  [
+    "paragraph",
+    "The following figures show the current interface with controlled sample data. They were captured from real Tkinter screens with database calls replaced. They illustrate the layout and forms; they are not evidence of a live save or printer test."
+  ],
+  [
+    "figure",
+    "Figure 11 Home dashboard with sample data",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\presentation\\current_dashboard_sample.png",
+    290
+  ],
+  [
+    "figure",
+    "Figure 12 Tenant registration form with sample data",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\tenant_form_sample.png",
+    345
+  ],
+  [
+    "figure",
+    "Figure 13 Payment form with sample data",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\payment_form_sample.png",
+    345
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "CHAPTER 4 - TESTING AND RESULTS",
+    1
+  ],
+  [
+    "heading",
+    "4.1 TESTING APPROACH",
+    2
+  ],
+  [
+    "paragraph",
+    "Testing for this report was carried out on 12 November 2026. The report_checks.py functions were run without writing rental records. One check parsed all 19 application Python files. The remaining checks used simulated controls and replaced database and message-box calls to test selected login, payment, date, and filename logic."
+  ],
+  [
+    "paragraph",
+    "The three tests in tests/test_logout.py were also run. They used real Tkinter controls, with database startup and record pages replaced. They checked closing old forms, signing in again, and rejecting a wrong password after logout. These tests do not confirm live MySQL access."
+  ],
+  [
+    "heading",
+    "4.2 TEST CASES AND ACTUAL RESULTS",
+    2
+  ],
+  [
+    "table",
+    "Table 9 Test cases and actual results",
+    [
+      "ID / feature",
+      "Input / condition",
+      "Expected",
+      "Actual result",
+      "Status"
+    ],
+    [
+      [
+        "T01 Source syntax",
+        "Parse all application Python files",
+        "No syntax errors",
+        "All 19 application Python files parsed successfully.",
+        "Pass"
+      ],
+      [
+        "T02 Money conversion",
+        "UGX 1,200,000",
+        "1200000.0",
+        "Returned 1200000.0.",
+        "Pass"
+      ],
+      [
+        "T03 Money conversion",
+        "abc",
+        "ValueError",
+        "Raised ValueError as expected.",
+        "Pass"
+      ],
+      [
+        "T04 Receipt filename",
+        "Sarah / Namuli",
+        "Replace spaces and slash with underscores",
+        "Returned Sarah___Namuli.",
+        "Pass"
+      ],
+      [
+        "T05 Login logic",
+        "Correct default credentials; mocked controls",
+        "Allow login",
+        "Success callback called; no error message.",
+        "Pass"
+      ],
+      [
+        "T06 Login logic",
+        "Wrong password; mocked controls",
+        "Reject login and clear password",
+        "Error requested, password cleared, success callback not called.",
+        "Pass"
+      ],
+      [
+        "T07 Partial payment",
+        "Main amount 500000, balance 150000, date 2026-11-02",
+        "Save amount paid 350000",
+        "Save received amount 350000 and balance 150000; no real database write.",
+        "Pass"
+      ],
+      [
+        "T08 Balance validation",
+        "Balance -1",
+        "Invalid Balance; block save",
+        "Invalid Balance warning requested; database save not called.",
+        "Pass"
+      ],
+      [
+        "T09 Balance validation",
+        "Balance 600000, main amount 500000",
+        "Invalid Balance; block save",
+        "Invalid Balance warning requested; database save not called.",
+        "Pass"
+      ],
+      [
+        "T10 Date validation",
+        "2026-02-30",
+        "Invalid Date; block save",
+        "Invalid Date warning requested; database save not called.",
+        "Pass"
+      ],
+      [
+        "T11 Logout cleanup",
+        "Open page and popup, then logout",
+        "Close old pages and forms; clear password",
+        "Real-widget logout test passed.",
+        "Pass"
+      ],
+      [
+        "T12 Sign in again",
+        "Logout, then sign in again",
+        "Create fresh pages and layout",
+        "Real-widget sign-in test passed.",
+        "Pass"
+      ],
+      [
+        "T13 Wrong password after logout",
+        "Logout, then enter wrong password",
+        "Keep record pages inaccessible",
+        "Real-widget rejection test passed.",
+        "Pass"
+      ]
+    ],
+    [
+      0.17,
+      0.23,
+      0.2,
+      0.3,
+      0.1
+    ]
+  ],
+  [
+    "paragraph",
+    "The calculation test confirms that the save function receives UGX 350,000 for a main amount of UGX 500,000 and balance of UGX 150,000. It does not perform a real database write. A syntax check confirms that files can be parsed; it does not check every runtime path."
+  ],
+  [
+    "heading",
+    "4.3 TESTING SUMMARY",
+    2
+  ],
+  [
+    "table",
+    "Table 10 Testing summary",
+    [
+      "Item",
+      "Result"
+    ],
+    [
+      [
+        "Source and selected-function checks run",
+        "10"
+      ],
+      [
+        "Real-widget logout checks run",
+        "3"
+      ],
+      [
+        "Total checks run",
+        "13"
+      ],
+      [
+        "Passed",
+        "13"
+      ],
+      [
+        "Failed",
+        "0"
+      ],
+      [
+        "Pending live scenarios listed below",
+        "8"
+      ],
+      [
+        "Live database writes in this report's tests",
+        "0"
+      ],
+      [
+        "Physical printing verified",
+        "No"
+      ]
+    ],
+    [
+      0.7,
+      0.3
+    ]
+  ],
+  [
+    "paragraph",
+    "Eight live scenarios remain pending: property save and reload; tenant save with document paths; payment save and joined history; property deletion with linked records; tenant deletion with linked payments; settings save and reset; close and reopen to confirm saved records; and receipt creation with actual printing. These should be run with sample records in a separate test database."
+  ],
+  [
+    "heading",
+    "4.4 PROBLEMS ENCOUNTERED AND SOLUTIONS",
+    2
+  ],
+  [
+    "paragraph",
+    "The following issues are visible in the design and source code. The table describes current handling without assuming an undocumented development history."
+  ],
+  [
+    "table",
+    "Table 11 Problems and solutions",
+    [
+      "Problem",
+      "Current handling",
+      "Remaining work"
+    ],
+    [
+      [
+        "The app needs prepared database tables",
+        "Startup checks access and shows an error if it fails. A SQL export is supplied.",
+        "Import into a test database and verify all screens."
+      ],
+      [
+        "Property, tenant, and payment records depend on each other",
+        "IDs link records; related deletions use ordered queries and rollback.",
+        "Test live rollback and preserve payment history."
+      ],
+      [
+        "An incorrect balance changes the amount paid",
+        "Numeric, date, and balance checks run before saving.",
+        "Add broader range checks and test more boundaries."
+      ],
+      [
+        "Old forms may remain after logout",
+        "Old widgets are destroyed and the login layout is rebuilt.",
+        "Keep the logout tests when changing navigation."
+      ],
+      [
+        "The login uses fixed credentials",
+        "The limitation is documented.",
+        "Replace it with securely stored credentials and access rules."
+      ],
+      [
+        "Some planned features are missing",
+        "They are listed as incomplete.",
+        "Finish editing, filtered search, leases, reports, and exports."
+      ]
+    ],
+    [
+      0.32,
+      0.38,
+      0.3
+    ]
+  ],
+  [
+    "heading",
+    "4.5 EVALUATION AGAINST OBJECTIVES AND REQUIREMENTS",
+    2
+  ],
+  [
+    "table",
+    "Table 12 Evaluation against objectives",
+    [
+      "Objective",
+      "Evidence",
+      "Evaluation"
+    ],
+    [
+      [
+        "O1 Property management",
+        "Forms and database functions for adding, viewing, and deleting.",
+        "Partly achieved; editing and detailed unit records are missing."
+      ],
+      [
+        "O2 Tenant management",
+        "Registration, linked property selection, viewing, and deletion.",
+        "Partly achieved; profile editing and safe archiving are missing."
+      ],
+      [
+        "O3 Rent and leases",
+        "Payment entry, amount calculation, balances, and a lease start field.",
+        "Partly achieved; full leases and move-out processing are missing."
+      ],
+      [
+        "O4 Database and security",
+        "Database functions, related tables, and a supplied SQL export.",
+        "Partly achieved; secure authentication and live tests are needed."
+      ],
+      [
+        "O5 Summaries and reports",
+        "Dashboard figures and text receipts.",
+        "Partly achieved; vacancy and financial reports and exports are incomplete."
+      ],
+      [
+        "O6 Validation and error handling",
+        "Selected payment, login, and logout checks passed.",
+        "Partly achieved; validation and error handling are not complete."
+      ]
+    ],
+    [
+      0.23,
+      0.4,
+      0.37
+    ]
+  ],
+  [
+    "paragraph",
+    "Passing thirteen selected checks does not mean that every requirement is complete. The system should be evaluated as a desktop prototype with working code for several core operations and clear gaps against the original plan."
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "CHAPTER 5 - USER GUIDE AND PROJECT COMPLETION",
+    1
+  ],
+  [
+    "heading",
+    "5.1 SYSTEM REQUIREMENTS",
+    2
+  ],
+  [
+    "paragraph",
+    "The current application needs a Windows computer with Python and Tkinter, the mysql-connector-python package, and access to a running MySQL-compatible database. A default printer and an application that can print text files are needed for physical receipts. The project does not provide measured minimum processor, memory, or storage requirements."
+  ],
+  [
+    "heading",
+    "5.2 INSTALLATION / SETUP INSTRUCTIONS",
+    2
+  ],
+  [
+    "paragraph",
+    "1. Place the project folder on the computer. Open a terminal in that folder and install the application dependency:"
+  ],
+  [
+    "code",
+    "python -m pip install -r requirements.txt"
+  ],
+  [
+    "paragraph",
+    "2. Start the database server. In a database tool such as phpMyAdmin, create a separate database for the project and import rental_management_system.sql into it. The export contains both structure and existing records, so review it first and do not import it over a working database."
+  ],
+  [
+    "paragraph",
+    "3. Check the connection settings in config/settings.py or set RMS_DB_HOST, RMS_DB_PORT, RMS_DB_USER, RMS_DB_PASSWORD, and RMS_DB_NAME in the environment. The default database name is rental_management_system. The program reads process environment variables; it does not automatically read a .env file."
+  ],
+  [
+    "paragraph",
+    "4. Confirm that users, properties, tenants, payments, and app_settings can be read. Startup checks these tables but does not create them. Then run:"
+  ],
+  [
+    "code",
+    "python main.py"
+  ],
+  [
+    "paragraph",
+    "5. For the current classroom demonstration, the configured username is eric and the password is 12345. These fixed credentials should be replaced before use with real records."
+  ],
+  [
+    "paragraph",
+    "6. Use sample data to check property entry, tenant registration, payment saving, and reopening the application. The supplied SQL export gives a setup starting point; a fresh import and complete live workflow were not tested for this report."
+  ],
+  [
+    "heading",
+    "5.3 HOW TO USE THE APPLICATION",
+    2
+  ],
+  [
+    "paragraph",
+    "Sign in: open the application and enter the configured login details. The Dashboard opens after a successful login."
+  ],
+  [
+    "paragraph",
+    "Add a property: open Properties, select Add Property, enter the property name, location, total units, and monthly rent, then save. Create the property before registering its tenants."
+  ],
+  [
+    "paragraph",
+    "Register a tenant: open Tenants and select the registration action. Choose the property, enter the tenant name, contact, unit number, and agreed rent. Add optional lease and document details, then save. Keep selected document files at accessible paths."
+  ],
+  [
+    "paragraph",
+    "Record rent: open Payments, choose Record Payment, and select a tenant. Check the property and unit, then enter the main amount, remaining balance, date, method, and other details. Use YYYY-MM-DD for the date. For rent of UGX 500,000 with UGX 150,000 remaining, the program records UGX 350,000 paid."
+  ],
+  [
+    "paragraph",
+    "Create a receipt: select a payment and choose Print Receipt. Check the generated text file in data/receipts. If printing is needed, confirm that the default application and printer complete the job."
+  ],
+  [
+    "paragraph",
+    "View summaries and settings: open Dashboard for totals and recent activity. Open Settings to change company details and available preferences. Reminder choices store preferences only."
+  ],
+  [
+    "paragraph",
+    "Delete a record: select a property or tenant and confirm the deletion only when the linked records can also be removed. Deletion removes associated payments. Keep a database backup before trying this with records that matter."
+  ],
+  [
+    "paragraph",
+    "Log out: choose Logout in the sidebar. Open forms close and unsaved entries are lost. The next user must sign in again. Saved records remain in the database."
+  ],
+  [
+    "heading",
+    "5.4 KNOWN LIMITATIONS",
+    2
+  ],
+  [
+    "paragraph",
+    "The login uses fixed demonstration credentials and has no role-based permissions. Property and tenant editing, filtered search, complete lease tracking, move-out handling, tenant exports, and detailed financial and vacancy reports are missing."
+  ],
+  [
+    "paragraph",
+    "Deleting a property or tenant removes related payment history. Units do not have their own records, and occupancy is estimated from tenant counts. Document paths can stop working if files are moved. Reminder preferences and late fees are not automated. Live database persistence and printing still need verification."
+  ],
+  [
+    "heading",
+    "5.5 RECOMMENDATIONS FOR FUTURE IMPROVEMENT",
+    2
+  ],
+  [
+    "paragraph",
+    "First, improve authentication and verify a repeatable database setup. Replace fixed credentials with securely stored passwords, use appropriate database permissions, and test the application against a separate database before introducing real records."
+  ],
+  [
+    "paragraph",
+    "Second, finish property and tenant editing, filtered search, separate unit records, lease expiry, and move-out processing. Add checks for negative rent, duplicate active unit assignments, contact information, dates, and document paths."
+  ],
+  [
+    "paragraph",
+    "Third, preserve historical records through archiving instead of deleting payments. Complete the approved financial and vacancy reports and export functions. Clearly distinguish stored reminder preferences from any future reminder service."
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "CHAPTER 6 - CONCLUSION",
+    1
+  ],
+  [
+    "heading",
+    "6.1 PROJECT SUMMARY",
+    2
+  ],
+  [
+    "paragraph",
+    "The Rental Management System brings property, tenant, and rent-payment records into one Python desktop application. Tkinter provides the screens, while a MySQL-compatible database stores the related records. The current code includes entry and viewing features, text receipts, a dashboard, settings, and logout."
+  ],
+  [
+    "heading",
+    "6.2 ACHIEVEMENT OF OBJECTIVES",
+    2
+  ],
+  [
+    "paragraph",
+    "All six main objectives are partly achieved. The system provides a base for routine rental records, but important parts of the approved plan remain incomplete. These include editing, search, lease management, full reports, secure login, and safe history retention. The thirteen passing checks support selected parts of the implementation; they do not establish full completion."
+  ],
+  [
+    "heading",
+    "6.3 LESSONS LEARNT",
+    2
+  ],
+  [
+    "paragraph",
+    "The project shows why related records need clear IDs and careful handling. A payment must match the correct tenant and property. Small calculation or input errors can affect rent figures, so validation should happen before saving."
+  ],
+  [
+    "paragraph",
+    "It also shows that a feature in source code, a screenshot, and a successful live test provide different kinds of evidence. Testing needs to cover calculations, screen behaviour, database saving, reopening records, and output. Keeping interface, validation, and database responsibilities clear makes later changes easier."
+  ],
+  [
+    "heading",
+    "6.4 REMARKS",
+    2
+  ],
+  [
+    "paragraph",
+    "The project is a useful desktop prototype for rental records. Completing the remaining features and carrying out live database and printer checks would make it more suitable for daily use. The next stage should focus on correctness, secure access, and keeping reliable payment history."
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "REFERENCES",
+    1
+  ],
+  [
+    "paragraph",
+    "Nahabwe Derrick Eric. Rental Management System project source files: main.py, config/settings.py, pages/, components/, and data/database.py. Local project files reviewed on 12 November 2026."
+  ],
+  [
+    "paragraph",
+    "Nahabwe Derrick Eric. Phase 2 Design and Incubation Report. reports/Phase2_Design_Report.md. Used for the earlier design and planned features."
+  ],
+  [
+    "paragraph",
+    "Nahabwe Derrick Eric. Phase 3 Final Project Report. reports/Final_Report.md. Used for the recorded proposal objectives, scope, and earlier implementation review."
+  ],
+  [
+    "paragraph",
+    "Nahabwe Derrick Eric. Rental Management System README.md and requirements.txt. Used for setup notes and application dependencies."
+  ],
+  [
+    "paragraph",
+    "Nahabwe Derrick Eric. rental_management_system.sql. Database export dated 12 November 2026. Used for table fields, keys, and database-source details."
+  ],
+  [
+    "paragraph",
+    "Nahabwe Derrick Eric. report_checks.py and tests/test_logout.py. Checks rerun on 12 November 2026. Results summarised in Chapter 4."
+  ],
+  [
+    "paragraph",
+    "Nahabwe Derrick Eric. Existing project diagrams and controlled-sample screenshots in reports/. Used to illustrate the design and interface."
+  ],
+  [
+    "paragraph",
+    "Namwanje Cabrine Jane. School Library Management System Project Report. User-supplied PDF, 45 pages. Used as the formatting and report-structure template; library-system claims and results were not transferred to this project."
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "APPENDICES",
+    1
+  ],
+  [
+    "heading",
+    "APPENDIX A - ADDITIONAL SCREENSHOTS AND OUTPUT SAMPLES",
+    2
+  ],
+  [
+    "figure",
+    "Figure 14 Login screen after logout",
+    "C:\\Users\\NAHABWE\\Desktop\\SAIPALI\\projects\\python\\rental management system\\reports\\presentation\\logout_login_sample.png",
+    310
+  ],
+  [
+    "paragraph",
+    "The login screenshot is a controlled interface sample. The following is an illustrative receipt summary showing the same calculation used in the payment test. It is not presented as a receipt generated by a live database or printer run."
+  ],
+  [
+    "code",
+    "RENT PAYMENT - ILLUSTRATIVE SAMPLE\nTenant: Sample Tenant\nProperty: Sample Apartments\nUnit: A1\nMain amount: UGX 500,000\nAmount paid: UGX 350,000\nBalance: UGX 150,000\nMethod: Cash\n\nAmount paid = main amount - balance"
+  ],
+  [
+    "break"
+  ],
+  [
+    "heading",
+    "APPENDIX B - DATABASE STRUCTURE (rental_management_system.sql)",
+    2
+  ],
+  [
+    "paragraph",
+    "This structure is taken from the supplied SQL export. INSERT statements containing existing records are omitted. The complete export remains in the project root. The following definitions are for reference; use the supplied export for setup and review it before importing."
+  ],
+  [
+    "code",
+    "CREATE TABLE `app_settings` (\n  `setting_key` varchar(80) NOT NULL,\n  `setting_value` text NOT NULL,\n  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+  ],
+  [
+    "code",
+    "CREATE TABLE `payments` (\n  `payment_id` int(11) NOT NULL,\n  `tenant_id` int(11) NOT NULL,\n  `amount` decimal(12,2) NOT NULL,\n  `payment_date` date NOT NULL,\n  `payment_method` varchar(40) NOT NULL,\n  `reference_no` varchar(80) DEFAULT NULL,\n  `notes` text DEFAULT NULL,\n  `balance` decimal(12,2) NOT NULL DEFAULT 0.00,\n  `status` varchar(30) NOT NULL DEFAULT 'Paid',\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp()\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+  ],
+  [
+    "code",
+    "CREATE TABLE `properties` (\n  `property_id` int(11) NOT NULL,\n  `property_name` varchar(120) NOT NULL,\n  `location` varchar(120) NOT NULL,\n  `total_units` int(11) NOT NULL DEFAULT 0,\n  `monthly_rent` decimal(12,2) NOT NULL DEFAULT 0.00,\n  `status` varchar(30) NOT NULL DEFAULT 'Active',\n  `extra_details` text DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp()\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+  ],
+  [
+    "code",
+    "CREATE TABLE `tenants` (\n  `tenant_id` int(11) NOT NULL,\n  `property_id` int(11) NOT NULL,\n  `tenant_name` varchar(120) NOT NULL,\n  `phone` varchar(40) NOT NULL,\n  `email` varchar(120) DEFAULT NULL,\n  `unit_number` varchar(40) NOT NULL,\n  `lease_start` date DEFAULT NULL,\n  `monthly_rent` decimal(12,2) NOT NULL DEFAULT 0.00,\n  `emergency_contact` varchar(120) DEFAULT NULL,\n  `status` varchar(30) NOT NULL DEFAULT 'Active',\n  `kyc_image_path` varchar(500) DEFAULT NULL,\n  `lc1_letter_path` varchar(500) DEFAULT NULL,\n  `extra_details` text DEFAULT NULL,\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp()\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+  ],
+  [
+    "code",
+    "CREATE TABLE `users` (\n  `user_id` int(11) NOT NULL,\n  `username` varchar(50) NOT NULL,\n  `password` varchar(255) NOT NULL,\n  `role` varchar(30) NOT NULL DEFAULT 'Admin',\n  `created_at` timestamp NOT NULL DEFAULT current_timestamp()\n) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;"
+  ],
+  [
+    "code",
+    "ALTER TABLE `app_settings`\n  ADD PRIMARY KEY (`setting_key`);"
+  ],
+  [
+    "code",
+    "ALTER TABLE `payments`\n  ADD PRIMARY KEY (`payment_id`),\n  ADD UNIQUE KEY `reference_no` (`reference_no`),\n  ADD KEY `fk_payments_tenant` (`tenant_id`);"
+  ],
+  [
+    "code",
+    "ALTER TABLE `properties`\n  ADD PRIMARY KEY (`property_id`);"
+  ],
+  [
+    "code",
+    "ALTER TABLE `tenants`\n  ADD PRIMARY KEY (`tenant_id`),\n  ADD UNIQUE KEY `phone` (`phone`),\n  ADD KEY `fk_tenants_property` (`property_id`);"
+  ],
+  [
+    "code",
+    "ALTER TABLE `users`\n  ADD PRIMARY KEY (`user_id`),\n  ADD UNIQUE KEY `username` (`username`);"
+  ],
+  [
+    "code",
+    "ALTER TABLE `payments`\n  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;"
+  ],
+  [
+    "code",
+    "ALTER TABLE `properties`\n  MODIFY `property_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;"
+  ],
+  [
+    "code",
+    "ALTER TABLE `tenants`\n  MODIFY `tenant_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;"
+  ],
+  [
+    "code",
+    "ALTER TABLE `users`\n  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;"
+  ],
+  [
+    "code",
+    "ALTER TABLE `payments`\n  ADD CONSTRAINT `fk_payments_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`tenant_id`) ON UPDATE CASCADE;"
+  ],
+  [
+    "code",
+    "ALTER TABLE `tenants`\n  ADD CONSTRAINT `fk_tenants_property` FOREIGN KEY (`property_id`) REFERENCES `properties` (`property_id`) ON UPDATE CASCADE;"
+  ]
+]

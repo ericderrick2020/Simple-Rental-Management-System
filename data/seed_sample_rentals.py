@@ -14,6 +14,11 @@ PROPERTIES = [
     ("Entebbe Lakeview Court", "Katabi, Entebbe", 8, 900000, "Two-bedroom apartments with shared green space and resident parking.", "Lydia Atim", "Emmanuel Ssemanda"),
     ("Mbarara Acacia Homes", "Nyamitanga, Mbarara", 6, 500000, "One-bedroom homes; tiled floors, water tanks and secure perimeter fence.", "Doreen Asiimwe", "Andrew Byaruhanga"),
     ("Jinja Riverside Apartments", "Walukuba, Jinja", 8, 600000, "Two-bedroom apartments with separate meters and shared courtyard.", "Harriet Naigaga", "Patrick Waiswa"),
+    ("Bukoto Cedar Apartments", "Bukoto, Kampala", 8, 800000, "One-bedroom apartments with parking and shared water storage.", "Agnes Nankya", "Francis Lubega"),
+    ("Mukono Sunrise Court", "Seeta, Mukono", 10, 450000, "Self-contained homes near public transport with individual meters.", "Christine Namirembe", "Robert Kirya"),
+    ("Lubowa Terrace Homes", "Lubowa, Wakiso", 6, 1400000, "Two-bedroom homes with private verandas and resident parking.", "Irene Nambassa", "Henry Ssewankambo"),
+    ("Gulu Mango Court", "Pece, Gulu", 8, 400000, "One-bedroom homes around a shared courtyard with secure fencing.", "Beatrice Auma", "George Ocen"),
+    ("Fort Portal Hillview", "Kagote, Fort Portal", 6, 550000, "Two-bedroom flats with balconies and separate utility meters.", "Juliet Kabonesa", "Vincent Amooti"),
 ]
 
 MARKER = "Fictional sample rental data (November 2026)."
@@ -59,11 +64,29 @@ def main():
                 )
                 added_tenants += 1
         cursor.execute("SELECT COUNT(*) FROM properties WHERE extra_details LIKE %s", (MARKER + "%",))
-        assert cursor.fetchone()[0] == 10, "Expected 10 sample properties"
+        assert cursor.fetchone()[0] == len(PROPERTIES), "Unexpected sample property count"
         cursor.execute("SELECT COUNT(*) FROM tenants WHERE extra_details LIKE %s", (MARKER + "%",))
-        assert cursor.fetchone()[0] == 20, "Expected 20 sample tenants"
+        assert cursor.fetchone()[0] == len(PROPERTIES) * 2, "Unexpected sample tenant count"
+        cursor.execute("SELECT tenant_id, monthly_rent FROM tenants WHERE extra_details LIKE %s ORDER BY tenant_id", (MARKER + "%",))
+        sample_tenants = cursor.fetchall()
+        added_payments = 0
+        for index, (tenant_id, rent) in enumerate(sample_tenants):
+            reference = f"SAMPLE-202611-{tenant_id:05d}"
+            cursor.execute("SELECT payment_id FROM payments WHERE reference_no = %s", (reference,))
+            if cursor.fetchall():
+                continue
+            status = ("Paid", "Paid", "Pending", "Overdue")[index % 4]
+            amount = rent if status == "Paid" else rent / 2 if status == "Pending" else 0
+            cursor.execute(
+                """INSERT INTO payments
+                (tenant_id, amount, payment_date, payment_method, reference_no, notes, balance, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                (tenant_id, amount, "2026-11-05", ("Mobile Money", "Bank Transfer", "Cash")[index % 3],
+                 reference, MARKER + " November rent demonstration; no real money received.", rent - amount, status),
+            )
+            added_payments += 1
         connection.commit()
-        print(f"Added {added_properties} properties and {added_tenants} tenants. Verified 10 sample properties and 20 linked tenants.")
+        print(f"Added {added_properties} properties, {added_tenants} tenants and {added_payments} payments.")
     except Exception:
         connection.rollback()
         raise

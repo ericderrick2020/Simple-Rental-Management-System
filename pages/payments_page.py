@@ -9,6 +9,7 @@ from tkinter import messagebox, ttk
 from components.simple_table import SimpleTable
 from config.settings import COLORS, FONTS
 from data.database import (
+    update_payment as update_payment_in_database,
     add_payment as save_payment_to_database,
     get_app_settings,
     get_payments,
@@ -50,6 +51,12 @@ class PaymentsPage(BasePage):
         )
         self.record_payment_button.pack(side="right", padx=(0, 8))
 
+        self.create_secondary_button(
+            self.header_actions,
+            text="Edit Selected",
+            command=self.edit_selected_payment,
+        ).pack(side="right", padx=(0, 8))
+
         # Column names must match the order of values added in save_payment().
         columns = (
             "Tenant",
@@ -69,12 +76,12 @@ class PaymentsPage(BasePage):
 
         self.load_payment_data()
 
-    def record_payment(self):
+    def record_payment(self, record=None):
         """Open a modal form for recording rent payments."""
 
         # Toplevel creates a new popup window for the payment form.
         modal = tk.Toplevel(self)
-        modal.title("Record Payment")
+        modal.title("Edit Payment" if record is not None else "Record Payment")
         modal.configure(bg=COLORS["surface"])
         modal.resizable(False, False)
 
@@ -90,7 +97,7 @@ class PaymentsPage(BasePage):
 
         tk.Label(
             form_frame,
-            text="Record Payment",
+            text="Edit Payment" if record is not None else "Record Payment",
             font=FONTS["subheading"],
             bg=COLORS["surface"],
             fg=COLORS["text"],
@@ -178,12 +185,29 @@ class PaymentsPage(BasePage):
         if self.tenant_lookup:
             self._fill_payment_details_from_tenant(entries, tenant_field.get())
 
+        if record is not None:
+            label = next((label for label, item in self.tenant_lookup.items()
+                          if item["tenant_id"] == record["tenant_id"]), None)
+            if label is None:
+                label = f"{record['tenant_name']} - {record['property_name']} / {record['unit_number']}"
+                self.tenant_lookup[label] = record
+                entries["tenant"].configure(values=list(self.tenant_lookup))
+            entries["tenant"].set(label)
+            self._fill_payment_details_from_tenant(entries, label)
+            values = dict(record, amount=record["amount"] + record["balance"],
+                          reference=record["reference_no"])
+            for field in ("amount", "balance", "payment_date", "reference", "notes"):
+                entries[field].delete(0, tk.END)
+                entries[field].insert(0, str(values[field]) if values[field] is not None else "")
+            entries["method"].set(record["payment_method"])
+            entries["status"].set(record["status"])
+
         button_frame = tk.Frame(form_frame, bg=COLORS["surface"])
         button_frame.grid(row=7, column=0, columnspan=4, sticky="e", pady=(8, 0))
 
         # Cancel closes the form. Save validates the data before adding it to the table.
         def save_form(event=None):
-            self.save_payment(entries, modal)
+            self.save_payment(entries, modal, record["payment_id"] if record is not None else None)
 
         def close_form(event):
             modal.destroy()
@@ -255,7 +279,7 @@ class PaymentsPage(BasePage):
         entries["amount"].delete(0, tk.END)
         entries["amount"].insert(0, str(tenant_record["monthly_rent"]))
 
-    def save_payment(self, entries, modal):
+    def save_payment(self, entries, modal, record_id=None):
         """Validate and add a payment record to the table."""
 
         # Read values from the form fields before checking them.
@@ -353,7 +377,10 @@ class PaymentsPage(BasePage):
         }
 
         try:
-            save_payment_to_database(payment_data)
+            if record_id is None:
+                save_payment_to_database(payment_data)
+            else:
+                update_payment_in_database(record_id, payment_data)
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",
@@ -496,3 +523,16 @@ class PaymentsPage(BasePage):
         """Refresh the payment list when the page is opened or refreshed."""
 
         self.load_payment_data()
+
+    def edit_selected_payment(self):
+        """Open the selected record with its existing values."""
+
+        index = self.payment_table.get_selected_index()
+        if index is None:
+            messagebox.showwarning(
+                "No Payment Selected",
+                "Please select a payment in the table before editing.",
+                parent=self,
+            )
+            return
+        self.record_payment(self.payment_records[index])

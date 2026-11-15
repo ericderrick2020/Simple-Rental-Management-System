@@ -4,6 +4,7 @@ from tkinter import messagebox
 from components.simple_table import SimpleTable
 from config.settings import COLORS, FONTS
 from data.database import (
+    update_property as update_property_in_database,
     add_property as save_property_to_database,
     delete_property as delete_property_from_database,
     get_properties,
@@ -44,6 +45,12 @@ class PropertiesPage(BasePage):
         )
         add_property_button.pack(side="right", padx=(0, 8))
 
+        self.create_secondary_button(
+            self.header_actions,
+            text="Edit Selected",
+            command=self.edit_selected_property,
+        ).pack(side="right", padx=(0, 8))
+
         # These columns control the headings shown in the properties table.
         columns = ("Property Name", "Location", "Units", "Monthly Rent", "Details")
 
@@ -53,12 +60,12 @@ class PropertiesPage(BasePage):
 
         self.load_property_data()
 
-    def add_property(self):
+    def add_property(self, record=None):
         """Open a modal form for adding a property."""
 
         # Toplevel creates a separate popup window above the main application.
         modal = tk.Toplevel(self)
-        modal.title("Add Property")
+        modal.title("Edit Property" if record is not None else "Add Property")
         modal.configure(bg=COLORS["surface"])
         modal.resizable(False, False)
 
@@ -72,7 +79,7 @@ class PropertiesPage(BasePage):
 
         tk.Label(
             form_frame,
-            text="Add Property",
+            text="Edit Property" if record is not None else "Add Property",
             font=FONTS["subheading"],
             bg=COLORS["surface"],
             fg=COLORS["text"],
@@ -142,11 +149,17 @@ class PropertiesPage(BasePage):
         entries["extra_details"] = details_field
 
         # Action buttons are grouped in their own frame at the bottom right.
+        if record is not None:
+            for field, key in (("property_name", "property_name"), ("location", "location"),
+                               ("units", "total_units"), ("revenue", "monthly_rent")):
+                entries[field].insert(0, str(record[key]))
+            entries["extra_details"].insert("1.0", record["extra_details"] or "")
+
         button_frame = tk.Frame(form_frame, bg=COLORS["surface"])
         button_frame.grid(row=7, column=0, columnspan=2, sticky="e", pady=(8, 0))
 
         def save_form(event=None):
-            self.save_property(entries, modal)
+            self.save_property(entries, modal, record["property_id"] if record is not None else None)
 
         def close_form(event):
             modal.destroy()
@@ -163,7 +176,7 @@ class PropertiesPage(BasePage):
 
         self.center_modal(modal)
 
-    def save_property(self, entries, modal):
+    def save_property(self, entries, modal, record_id=None):
         """Validate and save a property from the modal form."""
 
         # Read and trim the values entered by the user.
@@ -213,7 +226,10 @@ class PropertiesPage(BasePage):
         }
 
         try:
-            save_property_to_database(property_data)
+            if record_id is None:
+                save_property_to_database(property_data)
+            else:
+                update_property_in_database(record_id, property_data)
         except Exception as exc:
             messagebox.showerror(
                 "Database Error",
@@ -283,3 +299,16 @@ class PropertiesPage(BasePage):
         """Refresh the property list when the page is opened or refreshed."""
 
         self.load_property_data()
+
+    def edit_selected_property(self):
+        """Open the selected record with its existing values."""
+
+        index = self.property_table.get_selected_index()
+        if index is None:
+            messagebox.showwarning(
+                "No Property Selected",
+                "Please select a property in the table before editing.",
+                parent=self,
+            )
+            return
+        self.add_property(self.property_records[index])
