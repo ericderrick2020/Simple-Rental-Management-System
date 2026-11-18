@@ -69,6 +69,11 @@ The program reads process environment variables directly; it does not load a
    Open forms are closed and unsaved entries are discarded. Saved records remain
    in MySQL. Enter your password again to access the application.
 
+Use **Search** above the Properties, Tenants, or Payments table to find records
+as you type. Search all displayed columns or choose one column from the dropdown.
+Search ignores letter case. Multiple words must all appear in a matching row.
+Click **Clear** to show all records. Refresh keeps the current search.
+
 Deleting a tenant also deletes their payments. Deleting a property deletes its
 tenants and related payments after confirmation. Back up the database before
 deleting records.
@@ -88,8 +93,8 @@ are written to `reports/test_evidence.json`.
 
 The folder has been cleaned for handover, but the application is still a
 prototype. Real deployment requires secure authentication, a verified database
-setup, suitable database credentials, and live integration testing. Editing,
-filtered search, full lease tracking, history-preserving archiving, and the
+setup, suitable database credentials, and live integration testing. Full lease
+tracking, history-preserving archiving, and the
 approved detailed reports and exports remain incomplete. Reminder preferences
 do not send messages. See Phase 3 for the full evaluation.
 
